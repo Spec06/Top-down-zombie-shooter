@@ -1,6 +1,10 @@
 import random
 from models.card import Card
 
+
+class DeckEmptyError(Exception):
+    """Raised when attempting to draw from an empty deck."""
+
 SUITS = ["Herz","Karo","Pik","Kreuz"]
 
 VALUES = [
@@ -22,4 +26,6 @@ class Deck:
         random.shuffle(self.cards)
 
     def draw(self):
+        if not self.cards:
+            raise DeckEmptyError("Cannot draw from empty deck")
         return self.cards.pop()

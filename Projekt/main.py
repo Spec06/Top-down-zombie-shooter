@@ -1,8 +1,10 @@
 import pygame
 
-from settings import *
-from logic.game_manager import GameManager
+from settings import WIDTH, HEIGHT, FPS, GREEN
+from logic.gamemanager import GameManager
 from ui.button import Button
+from ui.table import PokerTable
+from ui.card_sprite import CardSprite
 
 pygame.init()
 
@@ -19,6 +21,8 @@ font = pygame.font.SysFont(
 
 game = GameManager()
 game.new_round()
+
+table = PokerTable()
 
 check_btn = Button(
 50, 630, 150, 50, "Check"
@@ -58,7 +62,26 @@ while running:
             if fold_btn.is_clicked(event.pos):
                 print("Fold")
 
-    screen.fill(GREEN)
+    # draw table and game state
+    table.draw(screen, font, game)
+
+    # draw table cards
+    for i, c in enumerate(game.table_cards):
+        x = 440 + i * 110
+        y = 260
+        CardSprite(c, x, y).draw(screen, font)
+
+    # draw player cards (bottom)
+    for i, c in enumerate(game.player.hand):
+        x = 540 + i * 110
+        y = 520
+        CardSprite(c, x, y).draw(screen, font)
+
+    # draw AI cards (top) - show for now
+    for i, c in enumerate(game.ai.hand):
+        x = 540 + i * 110
+        y = 120
+        CardSprite(c, x, y).draw(screen, font)
 
     check_btn.draw(screen, font)
     call_btn.draw(screen, font)
