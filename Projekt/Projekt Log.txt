@@ -9,3 +9,9 @@ Ideen: Roulet, 3hand Poker
 - Removed duplicate function definition in ai.py
 - Added missing import in ai.py (computer_handstärke)
 - All files now follow proper Python indentation standards
+=== NEW FIXES APPLIED ===
+- hand_evaluator updated to accept `models.card.Card` objects and tuple inputs; added helper `_to_pair` and ASCII-safe aliases (`ist_strasse`, `computer_handstaerke`) while keeping original German-named aliases for compatibility.
+- `models/deck.py`: added `DeckEmptyError` and defensive check in `draw()` to raise a clear error when the deck is empty.
+- Removed duplicate UI file `ui/card-sprite.py` and standardized on `ui/card_sprite.py` to avoid import/OS issues.
+- `Projekt/main.py` updated: replaced `from settings import *` with explicit imports; integrated `PokerTable` and `CardSprite` rendering for table, player, and AI hands; preserved button UI.
+- Added project scaffolding: `README.md` (run/test instructions), `requirements.txt` (`pygame`, `pytest`), and basic tests `tests/test_deck.py` and `tests/test_hand_evaluator.py`.
