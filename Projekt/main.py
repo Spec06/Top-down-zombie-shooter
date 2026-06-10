@@ -1,3 +1,4 @@
+table = PokerTable()
 import pygame
 import asyncio
 
@@ -9,9 +10,7 @@ from ui.card_sprite import CardSprite
 
 pygame.init()
 
-screen = pygame.display.set_mode(
-(WIDTH, HEIGHT)
-)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 clock = pygame.time.Clock()
 async def main():

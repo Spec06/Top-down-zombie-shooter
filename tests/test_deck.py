@@ -4,7 +4,6 @@ from Projekt.models.deck import Deck, DeckEmptyError
 def test_draw_until_empty():
     d = Deck()
     drawn = []
-    # draw all 52 cards
     for _ in range(52):
         drawn.append(d.draw())
     assert len(drawn) == 52
