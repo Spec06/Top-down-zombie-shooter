@@ -1,0 +1,4 @@
+Git Repository erstellt
+Struckturplan Grundgerüst
+Super base projekt: GambleGooner1234#
+Ideen: Roulet, 3hand Poker
