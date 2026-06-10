@@ -1,0 +1,22 @@
+poker_game/
+│
+├── main.py
+├── settings.py
+│
+├── models/
+│ ├── card.py
+│ ├── deck.py
+│ └── player.py
+│
+├── logic/
+│ ├── evaluator.py
+│ ├── ai.py
+│ └── game_manager.py
+│
+├── ui/
+│ ├── button.py
+│ ├── card_sprite.py
+│ └── table.py
+│
+└── assets/
+└── cards/
