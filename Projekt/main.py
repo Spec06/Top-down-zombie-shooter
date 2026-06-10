@@ -39,35 +39,32 @@ fold_btn = Button(
 running = True
 
 while running:
+    clock.tick(FPS)
 
-clock.tick(FPS)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if check_btn.is_clicked(event.pos):
+                print("Check")
 
-    if event.type == pygame.QUIT:
-        running = False
+            if call_btn.is_clicked(event.pos):
+                print("Call")
 
-    if event.type == pygame.MOUSEBUTTONDOWN:
+            if raise_btn.is_clicked(event.pos):
+                print("Raise")
 
-        if check_btn.is_clicked(event.pos):
-            print("Check")
+            if fold_btn.is_clicked(event.pos):
+                print("Fold")
 
-        if call_btn.is_clicked(event.pos):
-            print("Call")
+    screen.fill(GREEN)
 
-        if raise_btn.is_clicked(event.pos):
-            print("Raise")
+    check_btn.draw(screen, font)
+    call_btn.draw(screen, font)
+    raise_btn.draw(screen, font)
+    fold_btn.draw(screen, font)
 
-        if fold_btn.is_clicked(event.pos):
-            print("Fold")
-
-screen.fill(GREEN)
-
-check_btn.draw(screen, font)
-call_btn.draw(screen, font)
-raise_btn.draw(screen, font)
-fold_btn.draw(screen, font)
-
-pygame.display.flip()
+    pygame.display.flip()
 
 pygame.quit()

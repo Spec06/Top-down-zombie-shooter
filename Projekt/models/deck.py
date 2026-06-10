@@ -11,15 +11,15 @@ VALUES = [
 
 class Deck:
 
-def __init__(self):
-    self.cards = [
-        Card(v, s)
-        for v in VALUES
-        for s in SUITS
-    ]
+    def __init__(self):
+        self.cards = [
+            Card(v, s)
+            for v in VALUES
+            for s in SUITS
+        ]
 
-def shuffle(self):
-    random.shuffle(self.cards)
+    def shuffle(self):
+        random.shuffle(self.cards)
 
-def draw(self):
-    return self.cards.pop()
+    def draw(self):
+        return self.cards.pop()

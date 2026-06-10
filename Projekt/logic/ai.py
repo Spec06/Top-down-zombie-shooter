@@ -1,24 +1,14 @@
 import random
+from logic.hand_evaluator import computer_handstärke
 
 class PokerAI:
 
     def handstaerke(self, hand, tisch):
         return random.randint(0, 9)
 
-    def aktion(
-        self,
-        comp_chips,
-        player_bet,
-        comp_bet,
-        pot,
-        tisch,
-        hand,
-        phase
-    ):
-    
-    def computer_aktion(comp_chips, player_bet, comp_bet, pot, sicht_tisch, computer_hand, phase):
+    def aktion(self, comp_chips, player_bet, comp_bet, pot, tisch, hand, phase):
         to_call = player_bet - comp_bet
-        strength = computer_handstärke(computer_hand, sicht_tisch)
+        strength = computer_handstärke(hand, tisch)
 
         # Aggressivität je nach Phase
         if phase == "preflop":

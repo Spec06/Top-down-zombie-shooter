@@ -2,3 +2,10 @@ Git Repository erstellt
 Struckturplan Grundgerüst
 Super base projekt: GambleGooner1234#
 Ideen: Roulet, 3hand Poker
+
+=== FIXES APPLIED ===
+- Fixed indentation errors in all class methods (button.py, player.py, deck.py, card.py, gamemanager.py, ai.py)
+- Renamed Setting.py to settings.py to match import statement
+- Removed duplicate function definition in ai.py
+- Added missing import in ai.py (computer_handstärke)
+- All files now follow proper Python indentation standards
