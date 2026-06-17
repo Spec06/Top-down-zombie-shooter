@@ -1,2 +1,20 @@
 pygame
 pytest
+#Wie wir starten
+pwd
+Get-ChildItem -Force
+$f = Get-ChildItem -Path . -Filter main.py -Recurse -ErrorAction SilentlyContinue |
+     Select-Object -First 1 -ExpandProperty FullName
+Write-Output $f
+& "C:\Program Files\Python314\python.exe" "$f"
+py -V
+where.exe py
+Get-Command python
+py -m pip install -r Projekt\requirements.txt
+# oder einzeln:
+py -m pip install pygame-ce PyOpenGL numpy
+& "C:\Program Files\Python314\python.exe" -m pip install numpy
+& "C:\Program Files\Python314\python.exe" -m pip install -r Projekt\requirements.txt
+py "$f"
+# oder
+& "C:\Program Files\Python314\python.exe" "$f"

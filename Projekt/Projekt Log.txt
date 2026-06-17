@@ -42,12 +42,27 @@ Datum: 2026-06-17
 		- `spawn(entity_cls, point=None, tmx_path=None)` instanziiert
 			Entities mit sinnvollen Fallbacks
 
--- Hinweise / Next Steps ----------------------------------------------
-- TMX-Dateien sind Platzhalter; öffne sie in Tiled und füge z.B. ein
-	`player_spawn`-Objekt hinzu, damit SpawnManager den Spieler richtig setzt.
-- Optional: Sprite-Rendering für Player, Kollisionserkennung, Level-Loader
-	(pytmx) und persistente Assets ergänzen.
-- Wenn du möchtest, erstelle ich Tasks/Startskripte für VS Code
-	(`.vscode/tasks.json` / `run_menu.ps1`).
+-- Weiteres Update (OpenGL/3D & Laufzeit) ---------------------------
+Datum: 2026-06-17 (aktualisiert)
 
-----------------------------------------------------------------------
+- Wechsel zu 3D/OpenGL-Prototyp
+	- `Projekt/main.py` durch OpenGL-3D-Loop ersetzt (PyOpenGL, gluPerspective, Player-Cube)
+	- `Projekt/requirements.txt` hinzugefügt: `pygame-ce`, `PyOpenGL`, `numpy`
+
+- UI/Buttons
+	- `Projekt/ui/button.py` konsolidiert und bereinigt (Hover, Callback, Event-Handling)
+
+- Laufzeit & Tests
+	- Lokaler Lauf zeigte `ModuleNotFoundError: No module named 'numpy'`
+	- Empfehlung: Pakete in dem verwendeten Python-Interpreter installieren:
+		- `py -m pip install -r Projekt\\requirements.txt` oder
+		- `& "C:\\Program Files\\Python314\\python.exe" -m pip install -r Projekt\\requirements.txt`
+	- Nach Installation erneut `py Projekt\\main.py` starten; ggf. fehlende Pakete melden.
+
+- Nächste Schritte
+	- Menu-Integration in OpenGL-Loop prüfen (2D-Overlay oder separate Pygame-Fenster)
+	- Platzhalter-Map `maps/level_1.tmx` mit `player_spawn` Objekt ergänzen
+	- Falls gewünscht: `.vscode/tasks.json` erstellen zum einfachen Starten des Spiels
+
+Eintrag erstellt von GitHub Copilot am 2026-06-17.
+
