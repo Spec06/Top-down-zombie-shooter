@@ -1,17 +1,53 @@
 Git Repository erstellt
 Struckturplan Grundgerüst
 Super base projekt: GambleGooner1234#
-Ideen: Roulet, 3hand Poker
 
-=== FIXES APPLIED ===
-- Fixed indentation errors in all class methods (button.py, player.py, deck.py, card.py, gamemanager.py, ai.py)
-- Renamed Setting.py to settings.py to match import statement
-- Removed duplicate function definition in ai.py
-- Added missing import in ai.py (computer_handstärke)
-- All files now follow proper Python indentation standards
-=== NEW FIXES APPLIED ===
-- hand_evaluator updated to accept `models.card.Card` objects and tuple inputs; added helper `_to_pair` and ASCII-safe aliases (`ist_strasse`, `computer_handstaerke`) while keeping original German-named aliases for compatibility.
-- `models/deck.py`: added `DeckEmptyError` and defensive check in `draw()` to raise a clear error when the deck is empty.
-- Removed duplicate UI file `ui/card-sprite.py` and standardized on `ui/card_sprite.py` to avoid import/OS issues.
-- `Projekt/main.py` updated: replaced `from settings import *` with explicit imports; integrated `PokerTable` and `CardSprite` rendering for table, player, and AI hands; preserved button UI.
-- Added project scaffolding: `README.md` (run/test instructions), `requirements.txt` (`pygame`, `pytest`), and basic tests `tests/test_deck.py` and `tests/test_hand_evaluator.py`.
+-- Änderungen (Top-Down Game Migration) -------------------------------
+Datum: 2026-06-17
+
+- Projektstruktur umgestellt auf Top-Down-Game
+	- `Projekt/Projektstruktur.txt` aktualisiert (assets, maps, entities,
+		components, systems, ui, scripts)
+
+- Neue Ordner / Scaffolds angelegt unter `Projekt/`
+	- `assets/images/`, `assets/audio/`, `assets/tilesets/` (.gitkeep)
+	- `maps/level_1.tmx`, `maps/level_2.tmx` (Platzhalter)
+	- `entities/` (player.py, enemy.py, npc.py)
+	- `components/` (health.py, movement.py, inventory.py, attack.py, weapon.py)
+	- `systems/` (render_system.py, physics_system.py, ai_system.py,
+		combat_system.py, input_system.py)
+	- `ui/` (hud.py, menu.py, button.py)
+	- `scripts/` (spawn_manager.py, level_loader.py placeholder)
+
+- Menu & Main
+	- `Projekt/ui/menu.py` implementiert: Pygame-Rendering, Navigation,
+		console-fallback und blocking runner
+	- `Projekt/main.py` ersetzt: Pygame-Initialisierung, Menu-Integration,
+		Demo-Game-Loop mit Start/Options/Quit callbacks
+
+- Input & Movement
+	- `components/movement.py` enthält Movement-Komponente (velocity, speed)
+	- `systems/input_system.py` angelegt: WASD → Movement velocities (Normalisierung)
+	- `main.py` nutzt jetzt `InputSystem.update([player])` anstelle von
+		direktem Key-Event Handling
+
+- Combat / Attack
+	- `components/attack.py`, `components/weapon.py` angelegt (Scaffold)
+	- `systems/combat_system.py`: Reichweitenprüfung, Schaden anwenden
+
+- Spawn-Manager
+	- `scripts/spawn_manager.py` repariert und erweitert:
+		- `get_player_spawn(tmx_path)` liest TMX per ElementTree nach
+			`<object name="player_spawn" ...>`; fallback: Kartenmitte
+		- `spawn(entity_cls, point=None, tmx_path=None)` instanziiert
+			Entities mit sinnvollen Fallbacks
+
+-- Hinweise / Next Steps ----------------------------------------------
+- TMX-Dateien sind Platzhalter; öffne sie in Tiled und füge z.B. ein
+	`player_spawn`-Objekt hinzu, damit SpawnManager den Spieler richtig setzt.
+- Optional: Sprite-Rendering für Player, Kollisionserkennung, Level-Loader
+	(pytmx) und persistente Assets ergänzen.
+- Wenn du möchtest, erstelle ich Tasks/Startskripte für VS Code
+	(`.vscode/tasks.json` / `run_menu.ps1`).
+
+----------------------------------------------------------------------

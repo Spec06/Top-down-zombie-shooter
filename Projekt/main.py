@@ -1,16 +1,34 @@
 """Top-down game main entry with a simple Pygame menu and demo loop."""
 import sys
+import math
 import pygame
-from settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT, PLAYER_SPEED
 
 from ui.menu import Menu
+from entities.player import Player
+from components.movement import Movement
+from systems.input_system import InputSystem
+from scripts.spawn_manager import SpawnManager
 
 
 def run_game_loop(screen):
-    """A minimal demo game loop that returns when ESC is pressed."""
+    """A minimal demo game loop with WASD control.
+
+    Creates a player entity (spawn from TMX if available) and allows movement
+    with WASD. Returns when ESC is pressed or window closed.
+    """
     clock = pygame.time.Clock()
-    running = True
     font = pygame.font.SysFont("arial", 24)
+
+    # spawn player (try TMX spawn, fallback to center)
+    sm = SpawnManager()
+    player = sm.spawn(Player, tmx_path='Projekt/maps/level_1.tmx')
+    # attach movement component
+    mv = Movement(speed=PLAYER_SPEED)
+    player.add_component('movement', mv)
+
+    input_system = InputSystem()
+    running = True
     while running:
         dt = clock.tick(60) / 1000.0
         for event in pygame.event.get():
@@ -19,11 +37,23 @@ def run_game_loop(screen):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+            
+        # use InputSystem to update movement velocities
+        input_system.update([player])
 
+        # update position
+        x, y = player.position
+        vx, vy = mv.velocity
+        player.position = (x + vx * dt, y + vy * dt)
+
+        # draw
         screen.fill((12, 34, 48))
-        text = font.render("Game running - press ESC to return to menu", True, (240, 240, 240))
-        rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        screen.blit(text, rect)
+        # draw player as a circle
+        px, py = int(player.position[0]), int(player.position[1])
+        pygame.draw.circle(screen, (200, 80, 80), (px, py), 12)
+
+        info = font.render("WASD to move — ESC to return", True, (240, 240, 240))
+        screen.blit(info, (10, 10))
         pygame.display.flip()
 
     return True
