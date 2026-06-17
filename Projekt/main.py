@@ -1,93 +1,60 @@
-table = PokerTable()
+"""Top-down game main entry with a simple Pygame menu and demo loop."""
+import sys
 import pygame
-import asyncio
+from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-from settings import WIDTH, HEIGHT, FPS, GREEN
-from logic.gamemanager import GameManager
-from ui.button import Button
-from ui.table import PokerTable
-from ui.card_sprite import CardSprite
+from ui.menu import Menu
 
-pygame.init()
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
-clock = pygame.time.Clock()
-async def main():
-    font = pygame.font.SysFont(
-    "arial",
-    28
-    )
-
-    game = GameManager()
-    game.new_round()
-
-    table = PokerTable()
-
-    check_btn = Button(
-    50, 630, 150, 50, "Check"
-    )
-
-    call_btn = Button(
-    230, 630, 150, 50, "Call"
-    )
-
-    raise_btn = Button(
-    410, 630, 150, 50, "Raise"
-    )
-
-    fold_btn = Button(
-    590, 630, 150, 50, "Fold"
-    )
-
+def run_game_loop(screen):
+    """A minimal demo game loop that returns when ESC is pressed."""
+    clock = pygame.time.Clock()
     running = True
-
+    font = pygame.font.SysFont("arial", 24)
     while running:
-        clock.tick(FPS)
-
+        dt = clock.tick(60) / 1000.0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                return False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if check_btn.is_clicked(event.pos):
-                    print("Check")
-
-                if call_btn.is_clicked(event.pos):
-                    print("Call")
-
-                if raise_btn.is_clicked(event.pos):
-                    print("Raise")
-
-                if fold_btn.is_clicked(event.pos):
-                    print("Fold")
-
-        # draw table and game state
-        table.draw(screen, font, game)
-
-        # draw table cards
-        for i, c in enumerate(game.table_cards):
-            x = 440 + i * 110
-            y = 260
-            CardSprite(c, x, y).draw(screen, font)
-
-        # draw player cards (bottom)
-        for i, c in enumerate(game.player.hand):
-            x = 540 + i * 110
-            y = 520
-            CardSprite(c, x, y).draw(screen, font)
-
-        # draw AI cards (top) - show for now
-        for i, c in enumerate(game.ai.hand):
-            x = 540 + i * 110
-            y = 120
-            CardSprite(c, x, y).draw(screen, font)
-
-        check_btn.draw(screen, font)
-        call_btn.draw(screen, font)
-        raise_btn.draw(screen, font)
-        fold_btn.draw(screen, font)
-
+        screen.fill((12, 34, 48))
+        text = font.render("Game running - press ESC to return to menu", True, (240, 240, 240))
+        rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(text, rect)
         pygame.display.flip()
-    await asyncio.sleep(0)
-    pygame.quit()
+
+    return True
+
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Top-Down Game")
+
+    def start_cb():
+        ok = run_game_loop(screen)
+        return ok
+
+    def options_cb():
+        print("Options selected (not implemented)")
+        return None
+
+    def quit_cb():
+        pygame.quit()
+        sys.exit(0)
+
+    menu = Menu(["Start Game", "Options", "Quit"], title="Top-Down Game", callbacks=[start_cb, options_cb, quit_cb])
+
+    # Run menu in a blocking way until user selects Quit (quit_cb will sys.exit)
+    try:
+        selection = menu.run_pygame_blocking(screen)
+        print("Menu selection returned:", selection)
+    except SystemExit:
+        return
+
+
+if __name__ == "__main__":
+    main()

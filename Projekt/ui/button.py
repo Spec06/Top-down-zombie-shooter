@@ -1,3 +1,20 @@
+"""Button scaffold (simple representation)."""
+
+class Button:
+    def __init__(self, x, y, w, h, label):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.label = label
+
+    def is_clicked(self, pos):
+        px, py = pos
+        return self.x <= px <= self.x + self.w and self.y <= py <= self.y + self.h
+
+    def draw(self, screen, font):
+        # placeholder draw stub
+        return
 import pygame
 
 

@@ -1,22 +1,40 @@
-poker_game/
+top_down_game/
 │
 ├── main.py
 ├── settings.py
 │
-├── models/
-│ ├── card.py
-│ ├── deck.py
-│ └── player.py
+├── assets/
+│ ├── images/
+│ ├── audio/
+│ └── tilesets/
 │
-├── logic/
-│ ├── evaluator.py
-│ ├── ai.py
-│ └── game_manager.py
+├── maps/
+│ ├── level_1.tmx
+│ └── level_2.tmx
+│
+├── entities/
+│ ├── player.py
+│ ├── enemy.py
+│ └── npc.py
+│
+├── components/
+│ ├── health.py
+│ ├── movement.py
+│ └── inventory.py
+	├── attack.py
+	└── weapon.py
+│
+├── systems/
+│ ├── render_system.py
+│ ├── physics_system.py
+	└── combat_system.py
+│ └── ai_system.py
 │
 ├── ui/
-│ ├── button.py
-│ ├── card_sprite.py
-│ └── table.py
+│ ├── hud.py
+│ ├── menu.py
+│ └── button.py
 │
-└── assets/
-└── cards/
+└── scripts/
+	├── spawn_manager.py
+	└── level_loader.py
