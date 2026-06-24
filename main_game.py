@@ -1,6 +1,6 @@
 # pip install pygame PyOpenGL numpy
 # Run: python main_game.py
-
+#& "C:\Users\Reichskommandant\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" main_game.py
 """
 3D Top-Down Zombie Looter Shooter - Single File Implementation
 All assets are procedurally generated. No external files needed.
