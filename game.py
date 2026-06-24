@@ -1,247 +1,164 @@
-import pygame as pg
+import pygame as pg # Using the robust Community Edition import
 from pygame.locals import *
 from OpenGL.GL import *
 import numpy as np
 
+# ... (rest of the code) ...
 # --- Constants ---
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 60
 PLAYER_SPEED = 5.0
+PLAYER_RADIUS = 0.3 # Player Collision Radius
 
-# --- Player Class (Draft) ---
-class Player:
-    def __init__(self, x, y):
-        """Initializes the player's state."""
-        self.position = np.array([x, y, 0.0], dtype=float) # (x, y, z) in world space
-        self.rotation = 0.0  # Rotation around Y-axis (yaw) in degrees
-        self.health = 100
-        self.mesh_size = 0.5 # Size of the cubic player model
+# --- Global Lists (The Level Manager) ---
+WORLD_OBJECTS = [
+    {'position': np.array([5.0, 0.0, -3.0]), 'radius': 0.3}, # The Gold Loot Node
+]
+
+# --- Projectile Class ---
+class Projectile:
+    """Represents a fired bullet/tracer."""
+    def __init__(self, start_pos, rotation):
+        self.position = np.copy(start_pos)
+        self.radius = 0.15
+        self.speed = 20.0
+        self.rotation = rotation
+        self.velocity = self._calculate_velocity()
+
+    def _calculate_velocity(self):
+        """Calculates vector based on player's current yaw (rotation)."""
+        rotation_rad = np.radians(self.rotation)
+        vx = np.cos(rotation_rad) * self.speed
+        vz = np.sin(rotation_rad) * self.speed
+        vy = 0.0
+        return np.array([vx, vy, vz], dtype=float)
 
     def update(self, dt):
-        """Handle movement and rotation based on input."""
+        """Updates projectile position based on velocity."""
+        self.position += self.velocity * dt
+
+# --- Player Class (The Hero) ---
+class Player:
+    """Represents the controllable character and handles movement/collision."""
+    def __init__(self, x, y):
+        self.position = np.array([x, y, 0.0], dtype=float)
+        self.rotation = 0.0  # Yaw (horizontal turn)
+        self.health = 100
+        self.mesh_size = 0.5
+
+    def update(self, dt):
+        """Movement handling and collision checks against static world geometry."""
         keys = pg.key.get_pressed()
-
-        # Calculate forward vector based on current rotation
         rotation_rad = np.radians(self.rotation)
-        forward_vector = np.array([
-            np.cos(rotation_rad),
-            np.sin(rotation_rad),
-            0.0
-        ])
-
+        forward_vector = np.array([np.cos(rotation_rad), np.sin(rotation_rad), 0.0])
         movement = np.array([0.0, 0.0, 0.0], dtype=float)
 
-        # Directional input (W/S for forward/backward, A/D for strafe left/right)
-        if keys[K_w]:
-            movement += forward_vector
-        if keys[K_s]:
-            movement -= forward_vector
-        if keys[K_a]: # Strafe Left
-            # Vector perpendicular to the forward vector (-sin, cos, 0)
+        if keys[K_w]: movement += forward_vector
+        if keys[K_s]: movement -= forward_vector
+        elif keys[K_a]: # Strafe Left
             strafe_left = np.array([-np.sin(rotation_rad), np.cos(rotation_rad), 0.0])
             movement += strafe_left
-        if keys[K_d]: # Strafe Right
+        elif keys[K_d]: # Strafe Right
             strafe_right = np.array([np.sin(rotation_rad), -np.cos(rotation_rad), 0.0])
             movement += strafe_right
 
-        # Normalize movement vector (to prevent faster diagonal movement)
         if np.linalg.norm(movement) > 0:
             movement = movement / np.linalg.norm(movement)
+            new_position = self.position + movement * PLAYER_SPEED * dt
 
-            # Apply speed and delta time to movement
-            self.position += movement * PLAYER_SPEED * dt
+            collision_occurred = False
+            for obj in WORLD_OBJECTS:
+                obj_pos = obj['position']
+                obj_radius = obj['radius']
+                distance = np.linalg.norm(new_position - obj_pos)
+
+                if distance < (PLAYER_RADIUS + obj_radius):
+                    collision_occurred = True
+                    # Collision Response: Calculate overlap and push player out
+                    direction_vector = new_position - obj_pos
+                    overlap = (PLAYER_RADIUS + obj_radius) - distance
+                    self.position += (direction_vector / np.linalg.norm(direction_vector)) * overlap
+                    break
+
+            return collision_occurred
+        return False
 
     def rotate(self, dt):
         """Handle continuous rotation input."""
         keys = pg.key.get_pressed()
-        rotation_speed = 150.0 * dt # Degrees per second
-        if keys[K_LEFT]:
-            self.rotation -= rotation_speed
-        if keys[K_RIGHT]:
-            self.rotation += rotation_speed
+        rotation_speed = 150.0 * dt
+        if keys[K_LEFT]: self.rotation -= rotation_speed
+        elif keys[K_RIGHT]: self.rotation += rotation_speed
 
-# --- Camera Class (Draft) ---
+# --- Camera Class (The Observer) ---
 class Camera:
     def __init__(self, target_x, target_y, distance=8.0):
-        """Camera orbits around the target player position."""
         self.target = np.array([target_x, target_y, 0.0], dtype=float)
         self.distance = distance
-        self.pitch = 30  # Vertical angle (up/down tilt)
-        self.yaw = 0   # Horizontal angle (left/right rotation around Y-axis)
+        self.pitch = 30  # Vertical tilt
+        self.yaw = 0
 
     def update(self, player):
-        """Updates the camera based on current player position/rotation."""
-        self.target = np.array([player.position[0], player.position[1], 0.0]) # Look at X, Y of player
-        # Keep yaw aligned with player rotation for simplicity
+        self.target = np.array([player.position[0], player.position[1], 0.0])
         self.yaw = player.rotation
 
     def get_view_matrix(self):
-        """Calculates the ModelView matrix (the transformation from world to camera space)."""
-
-        # Convert angles to radians
         pitch_rad = np.radians(self.pitch)
         yaw_rad = np.radians(self.yaw)
         distance = self.distance
 
-        # Calculate spherical coordinates translated into Cartesian offsets
-        # X: distance * cos(pitch) * sin(yaw)
-        # Y: distance * sin(pitch)
-        # Z: distance * cos(pitch) * cos(yaw)
-
+        # Calculate offsets
         view_x = distance * np.cos(pitch_rad) * np.sin(yaw_rad)
         view_y = distance * np.sin(pitch_rad)
         view_z = distance * np.cos(pitch_rad) * np.cos(yaw_rad)
 
-        # The camera position is relative to the target
-        camera_pos = np.array([view_x, view_y, view_z])
-        target_pos = self.target
-
-        # View Matrix components (LookAt implementation: [Rotations] * [Translation])
-
-        # Note: OpenGL uses a column-major matrix representation internally,
-        # but we often define it row-wise when setting uniforms/using numpy
-
-        M = np.identity(4) # Start with Identity Matrix
-
-        # 1. Rotation (Yaw and Pitch around the target)
-        # Rotation about Y (Yaw)
+        # Rotation Matrices (Pitch then Yaw)
         Ry = np.array([
-            [np.cos(yaw_rad), 0, np.sin(yaw_rad), 0],
-            [0, 1, 0, 0],
-            [-np.sin(yaw_rad), 0, np.cos(yaw_rad), 0],
-            [0, 0, 0, 1]
+            [np.cos(yaw_rad), 0, np.sin(yaw_rad), 0], [0, 1, 0, 0], [-np.sin(yaw_rad), 0, np.cos(yaw_rad), 0], [0, 0, 0, 1]
         ])
 
-        # Rotation about X (Pitch) - Rotate around the *new* X axis after Yaw
         Rx = np.array([
-            [1, 0, 0, 0],
-            [0, np.cos(pitch_rad), -np.sin(pitch_rad), 0],
-            [0, np.sin(pitch_rad), np.cos(pitch_rad), 0],
-            [0, 0, 0, 1]
+            [1, 0, 0, 0], [0, np.cos(pitch_rad), -np.sin(pitch_rad), 0], [0, np.sin(pitch_rad), np.cos(pitch_rad), 0], [0, 0, 0, 1]
         ])
 
-        # Combine Rotations (Order matters: Rotate Pitch then Yaw)
         R = Rx @ Ry
 
-        # 2. Translation (Move the world opposite to where the camera is placed)
-        # Since the view matrix transforms WORLD -> CAMERA, we translate by [-view_x, -view_y, -view_z]
+        # Translation Matrix: T * R
         T = np.identity(4)
-        T[0, 3] = -camera_pos[0] # Tx
-        T[1, 3] = -camera_pos[1] # Ty
-        T[2, 3] = -camera_pos[2] # Tz
+        T[0, 3] = -view_x
+        T[1, 3] = -view_y
+        T[2, 3] = -view_z
 
-        # Final View Matrix: T * R (applied right-to-left)
         return T @ R
 
-# --- Drawing Functions ---
-
-def draw_cube(location=(0.0, 0.0, 0.0), size=1.0):
+# --- Drawing Functions (The Renderer) ---
+def draw_cube(location=(0.0, 0.0, 0.0), size=1.0, color=(1.0, 1.0, 1.0)):
     """Draws a simple colored cube at the specified location."""
     glPushMatrix()
     glTranslatef(location[0], location[1], location[2])
     glScalef(size, size, size)
 
-    # Define vertices for a unit-sized cube centered at (0,0,0)
     vertices = [
-        # Front face (+Z)
-        (-0.5, -0.5, 0.5),  (0.5, -0.5, 0.5),  (0.5, 0.5, 0.5),  (-0.5, 0.5, 0.5),
-        # Back face (-Z)
-        (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5), (-0.5, 0.5, -0.5),
-        # Top face (+Y)
-        (-0.5, 0.5, 0.5),  (0.5, 0.5, 0.5),  (0.5, 0.5, -0.5), (-0.5, 0.5, -0.5),
-        # Bottom face (-Y)
-        (-0.5, -0.5, 0.5), (0.5, -0.5, 0.5),  (0.5, -0.5, -0.5), (-0.5, -0.5, -0.5),
-        # Right face (+X)
-        (0.5, -0.5, 0.5),  (0.5, 0.5, 0.5),  (0.5, 0.5, -0.5), (0.5, -0.5, -0.5),
-        # Left face (-X)
-        (-0.5, -0.5, 0.5), (-0.5, 0.5, 0.5),  (-0.5, 0.5, -0.5), (-0.5, -0.5, -0.5)
+        # Front (Indices 0-3), Back (4-7), Top (8-11), Bottom (12-15), Right (16-19), Left (20-23)
+        (-0.5, -0.5,  0.5), ( 0.5, -0.5,  0.5), ( 0.5,  0.5,  0.5), (-0.5,  0.5,  0.5), # Front
+        (-0.5, -0.5, -0.5), ( 0.5, -0.5, -0.5), ( 0.5,  0.5, -0.5), (-0.5,  0.5, -0.5), # Back
+        (-0.5,  0.5,  0.5), ( 0.5,  0.5,  0.5), ( 0.5,  0.5, -0.5), (-0.5,  0.5, -0.5), # Top
+        (-0.5, -0.5, -0.5), ( 0.5, -0.5, -0.5), ( 0.5, -0.5,  0.5), (-0.5, -0.5,  0.5), # Bottom
+        ( 0.5,  0.5,  0.5), ( 0.5, -0.5,  0.5), ( 0.5, -0.5, -0.5), ( 0.5,  0.5, -0.5), # Right
+        (-0.5, -0.5,  0.5), (-0.5,  0.5,  0.5), (-0.5,  0.5, -0.5), (-0.5, -0.5, -0.5)  # Left
     ]
 
-    # Define colors (R, G, B) for each vertex
-    colors = [
-        (1.0, 0.0, 0.0),  # Red: Front
-        (0.0, 1.0, 0.0),  # Green: Back
-        (0.0, 0.0, 1.0),  # Blue: Top
-        (1.0, 1.0, 0.0),  # Yellow: Bottom (Coin/Loot color)
-        (0.5, 0.5, 0.5),  # Gray: Right
-        (0.8, 0.0, 0.8)   # Magenta: Left
-    ]
-
-    # Draw each face using GL_QUADS
     glBegin(GL_QUADS)
-
-    # Front Face (Red)
-    glColor3fv(colors[0])
-    glVertex3fv(vertices[0])
-    glVertex3fv(vertices[1])
-    glVertex3fv(vertices[2])
-    glVertex3fv(vertices[3])
-
-    # Back Face (Green)
-    glColor3fv(colors[1])
-    glVertex3fv(vertices[4])
-    glVertex3fv(vertices[5])
-    glVertex3fv(vertices[6])
-    glVertex3fv(vertices[7])
-
-    # Top Face (Blue)
-    glColor3fv(colors[2])
-    glVertex3fv(vertices[8])
-    glVertex3fv(vertices[9])
-    glVertex3fv(vertices[10])
-    glVertex3fv(vertices[11])
-
-    # Bottom Face (Yellow - Represents the ground/base level)
-    glColor3fv(colors[3])
-    glVertex3fv(vertices[12]) # Reusing vertices list layout for simplicity: this is actually vertex index 0, but drawn as bottom
-    glVertex3fv(vertices[13])
-    glVertex3fv(vertices[14])
-    glVertex3fv(vertices[15])
-
-    # Right Face (Gray) - *Note: Adjusted the indices to match a contiguous list of 24 vertices*
-    glEnableClientState(GL_VERTEX_ARRAY)
-    glEnableClientState(GL_COLOR_ARRAY)
-    glVertexPointer(3, GL_FLOAT, 0, np.array(vertices))
-    glColorPointer(3, GL_FLOAT, 0, np.array(colors))
-
-    # Redrawing using array commands for better efficiency:
-    glBegin(GL_QUADS)
-
-    # Front face (Red)
-    glColor3f(*colors[0])
-    glVertex3f(*vertices[2*0:2*0+3]) # (-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5)
-
-    # Back face (Green)
-    glColor3f(*colors[1])
-    glVertex3f(*vertices[2*1+0:2*1+3]) # (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5)
-
-    # Top face (Blue)
-    glColor3f(*colors[2])
-    glVertex3f(*vertices[2*2+0:2*2+3]) # (-0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (0.5, 0.5, -0.5)
-
-    # Bottom face (Yellow/Ground Plate)
-    glColor3f(*colors[3])
-    glVertex3f(*vertices[2*3+0:2*3+3]) # (-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, -0.5, -0.5)
-
-    # Right face (Gray)
-    glColor3f(*colors[4])
-    glVertex3f(0.5, -0.5, 0.5) # Note: Need to use explicit vertex coordinates here for clarity when mixing methods
-    glVertex3f(0.5, 0.5, 0.5)
-    glVertex3f(0.5, 0.5, -0.5)
-    glVertex3f(0.5, -0.5, -0.5)
-
-    # Left face (Magenta)
-    glColor3f(*colors[5])
-    glVertex3f(-0.5, -0.5, 0.5)
-    glVertex3f(-0.5, 0.5, 0.5)
-    glVertex3f(-0.5, 0.5, -0.5)
-    glVertex3f(-0.5, -0.5, -0.5)
-
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [0, 1, 2, 3]]) # Face 1: Front
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [4, 5, 6, 7]]) # Face 2: Back
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [8, 9, 10, 11]]) # Face 3: Top
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [12, 13, 14, 15]]) # Face 4: Bottom (Ground)
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [16, 17, 18, 19]]) # Face 5: Right
+    glColor3fv(color); glVertex3fv([vertices[i] for i in [20, 21, 22, 23]]) # Face 6: Left
     glEnd()
     glPopMatrix()
 
-# --- Main Game Loop Function ---
 def game_loop():
     """Initializes and runs the main Pygame loop."""
     pg.init()
@@ -249,79 +166,102 @@ def game_loop():
     pg.display.set_caption("Pygame Top-Down Looter Shooter [3D]")
 
     # --- Game Objects Initialization ---
-    player = Player(x=0.0, y=1.0) # Start player slightly above the ground (y=0.5 to 1.0 for cube center)
+    player = Player(x=0.0, y=1.0)
     camera = Camera(target_x=player.position[0], target_y=player.position[1])
+    projectiles = []
 
-    # --- Clock and Timing ---
     clock = pg.time.Clock()
 
+    # --- Main Loop State ---
     running = True
     while running:
-        # Calculate Delta Time (Time elapsed since last frame in seconds)
         dt = clock.tick(FPS) / 1000.0
 
-        # --- Event Handling ---
+        # --- Event Handling (Input) ---
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     running = False
-                # Future hook for shooting, abilities, etc.
+                elif event.key == pg.K_SPACE:
+                    new_proj = Projectile(player.position, player.rotation)
+                    projectiles.append(new_proj)
 
         # --- Update Logic ---
-        player.rotate(dt) # Player rotation happens continuously even if no directional key is held down (for smoother turn)
-        player.update(dt)
+        player_collision_occurred = player.update(dt)
         camera.update(player)
 
+        # *** PROJECTILE UPDATE & COLLISION CHECKING (Loot Mechanic) ***
+        projectiles_to_remove = []
+        for i, proj in enumerate(projectiles):
+            proj.update(dt)
+            hit_world_object = False
+            for obj in WORLD_OBJECTS:
+                obj_pos = obj['position']
+                obj_radius = obj['radius']
+                P_R = proj.radius
+                distance = np.linalg.norm(proj.position - obj_pos)
+
+                if distance < (P_R + obj_radius):
+                    hit_world_object = True
+                    WORLD_OBJECTS.remove(obj)
+                    print(">> Loot Node successfully destroyed! COLLECTABLE ACQUIRED! <<")
+                    break
+
+            # Boundary check (+/- 50 units on XZ plane)
+            is_out_of_bounds = abs(proj.position[0]) > 50 or abs(proj.position[2]) > 50
+
+            if hit_world_object or is_out_of_bounds:
+                projectiles_to_remove.append(i)
+
+        # Remove projectiles cleanly
+        for index in sorted(projectiles_to_remove, reverse=True):
+            projectiles.pop(index)
+
         # --- Drawing Phase ---
-
-        # Set up OpenGL state for each frame
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glEnable(GL_DEPTH_TEST) # Crucial: Ensures closer objects obscure farther ones
+        glEnable(GL_DEPTH_TEST)
 
-        # Setup basic lighting (Phong shading foundation)
+        # Lighting Setup
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
-        light_position = [1.0, 1.0, 1.0, 0.0] # Directional key point at infinity
+        light_position = [1.5, 2.5, 1.5, 0.0]
         glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-        glLightfv(GL_LIGHT0, GL_AMBIENT, (0.2, 0.2, 0.2)) # Ambient light level
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, (1.0, 1.0, 1.0))  # Brightness of the directional component
+        glLightfv(GL_LIGHT0, GL_AMBIENT, (0.15, 0.15, 0.15))
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, (0.9, 0.9, 0.9))
 
-        # Set background color (Sky Blue)
-        glClearColor(0.5, 0.7, 1.0, 1.0)
-        glEnable(GL_COLOR_MATERIAL) # Allows colors set via glColor3fv to be used by OpenGL lighting
+        glClearColor(0.5, 0.7, 1.0, 1.0) # Sky Blue background
+        glEnable(GL_COLOR_MATERIAL)
 
-        # --- Apply Camera/View Transformation ---
-        glLoadIdentity() # Reset the ModelView matrix stack
+        # --- Apply Camera/View Transformation & Draw Sequence ---
+        glLoadIdentity()
         view_matrix = camera.get_view_matrix()
         glMultMatrixf(view_matrix.flatten())
 
-        # --- Draw Game World Elements ---
+        # 1. Ground / Level Base (Green)
+        draw_cube(location=(0.0, -0.5, 0.0), size=30.0, color=(0.2, 0.7, 0.2))
 
-        # 1. The Ground / Level Base (A large cube/plate at height -0.5)
-        # We use a larger box to simulate an open plane or initial map area.
-        draw_cube(location=(0.0, -0.5, 0.0), size=30.0)
-
-        # 2. Player Model (Drawn at the player's world position/Y-level)
+        # 2. Player Model (Red)
         glPushMatrix()
-        glTranslatef(player.position[0], player.position[1] + 0.5, player.position[2]) # Adjust Y to center cube on ground level
-        # Optional: Rotate model to match character yaw/rotation
+        glTranslatef(player.position[0], player.position[1] + player.mesh_size/2, player.position[2])
         glRotatef(player.rotation, 0, 1, 0)
-        draw_cube(location=(0.0, 0.0, 0.0), size=player.mesh_size)
+        draw_cube(location=(0.0, 0.0, 0.0), size=player.mesh_size, color=(0.8, 0.2, 0.2)) # Player Mesh Color
         glPopMatrix()
 
-        # Optional: Draw a Loot/Resource Node (a smaller cube somewhere else)
-        loot_pos = np.array([5.0, 0.0, -3.0])
-        draw_cube(location=(loot_pos[0], loot_pos[1] + 0.5, loot_pos[2]), size=0.7, color=(1.0, 1.0, 0.0)) # Gold/Yellow
+        # 3. Render Projectiles (White bullets)
+        for proj in projectiles:
+            proj_color = (1.0, 1.0, 1.0)
+            draw_cube(location=(proj.position[0], proj.position[1] + proj.radius/2, proj.position[2]), size=proj.radius*2, color=proj_color)
 
-        # --- Flip the display to show what was rendered ---
+        # 4. Render Loot Nodes (Gold targets)
+        for obj in WORLD_OBJECTS:
+            loot_pos = obj['position']
+            draw_cube(location=(loot_pos[0], loot_pos[1] + obj['radius']/2, loot_pos[2]), size=obj['radius']*2, color=(1.0, 1.0, 0.5))
+
         pg.display.flip()
 
-    # Quit Pygame
     pg.quit()
 
 if __name__ == "__main__":
-    print("--- Starting Top-Down Looter Shooter Implementation in Pygame (3D) ---")
     game_loop()
-    print("\nGame loop terminated successfully.")
