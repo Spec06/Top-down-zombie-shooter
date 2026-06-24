@@ -25,7 +25,7 @@ STATE_MENU, STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER = 0, 1, 2, 3
 WEAPONS = {
     'pistol':  dict(name='Pistol',  damage=15, fire_rate=0.25, magazine=12, reload_time=1.2, spread=0.02,  bullet_speed=40, pellets=1, color=(0.9,0.9,0.3), auto=False),
     'shotgun': dict(name='Shotgun', damage=8,  fire_rate=0.8,  magazine=6,  reload_time=2.0, spread=0.15,  bullet_speed=35, pellets=6, color=(0.9,0.6,0.2), auto=False),
-    'rifle':   dict(name='Rifle',   damage=35, fire_rate=0.12, magazine=10, reload_time=1.8, spread=0.005, bullet_speed=60, pellets=1, color=(0.3,0.7,0.9), auto=True),
+    'rifle':   dict(name='Rifle',   damage=35, fire_rate=0.12, magazine=20, reload_time=1.8, spread=0.005, bullet_speed=60, pellets=1, color=(0.3,0.7,0.9), auto=True),
 }
 WEAPON_ORDER = ['pistol', 'shotgun', 'rifle']
 
@@ -468,7 +468,7 @@ class Player:
         self.weapons = ['pistol', None, None]  # 3 slots
         self.current_weapon = 0
         self.ammo = {'pistol': 48, 'shotgun': 0, 'rifle': 0}
-        self.magazine = {'pistol': 12, 'shotgun': 6, 'rifle': 10}
+        self.magazine = {'pistol': 12, 'shotgun': 6, 'rifle': 20}
         self.consumables = 1  # medkits
         self.fire_cooldown = 0
         self.reloading = False
@@ -561,8 +561,8 @@ class Player:
             self.ammo['shotgun'] += 6
             game.add_feedback("Shotgun Ammo +6", self.pos[:], (1, 1, 0))
         elif loot.type == 'ammo_rifle':
-            self.ammo['rifle'] += 10
-            game.add_feedback("Rifle Ammo +10", self.pos[:], (1, 1, 0))
+            self.ammo['rifle'] += 20
+            game.add_feedback("Rifle Ammo +20", self.pos[:], (1, 1, 0))
         elif loot.type == 'medkit':
             if self.consumables < 5:
                 self.consumables += 1
@@ -581,8 +581,8 @@ class Player:
                 self.weapons[2] = 'rifle'
                 game.add_feedback("Rifle Acquired", self.pos[:], (0, 0.5, 1))
             else:
-                self.ammo['rifle'] += 10
-                game.add_feedback("Rifle Ammo +10", self.pos[:], (1, 1, 0))
+                self.ammo['rifle'] += 20
+                game.add_feedback("Rifle Ammo +20", self.pos[:], (1, 1, 0))
         game.play_sound('pickup')
         return True
 
@@ -610,7 +610,7 @@ class Player:
 
         # Aim
         self.aim_angle = math.atan2(game.mouse_world[2] - self.pos[2],
-                                     game.mouse_world[0] - self.pos[0])
+        game.mouse_world[0] - self.pos[0])
 
         # Auto-fire for auto weapons
         mouse = pygame.mouse.get_pressed()
@@ -639,7 +639,7 @@ class Player:
     def draw(self, r):
         # Body: cylinder
         model = mat4_mul(mat4_translate(self.pos[0], 0, self.pos[2]),
-                         mat4_scale(0.5, 1.4, 0.5))
+        mat4_scale(0.5, 1.4, 0.5))
         flash = 0
         if self.hit_flash > 0:
             flash = self.hit_flash / 0.2
@@ -647,13 +647,13 @@ class Player:
         r.draw_cylinder(model, (0.2, 0.8, 0.2), emissive=emissive)
         # Head: smaller cylinder
         model2 = mat4_mul(mat4_translate(self.pos[0], 1.4, self.pos[2]),
-                          mat4_scale(0.35, 0.4, 0.35))
+        mat4_scale(0.35, 0.4, 0.35))
         r.draw_cylinder(model2, (0.9, 0.7, 0.5), emissive=emissive)
         # Barrel: small cube in front of player
         bx = self.pos[0] + math.cos(self.aim_angle) * 0.5
         bz = self.pos[2] + math.sin(self.aim_angle) * 0.5
         barrel_model = mat4_mul(mat4_mul(mat4_translate(bx, 1.0, bz),
-                                          mat4_rotate_y(self.aim_angle)),
+        mat4_rotate_y(self.aim_angle)),
                                 mat4_scale(0.6, 0.2, 0.2))
         r.draw_cube(barrel_model, (0.2, 0.2, 0.2))
         # Muzzle flash
@@ -757,11 +757,11 @@ class Zombie:
             r.draw_cube(model, self.color, emissive=emissive, alpha=alpha)
         else:
             model = mat4_mul(mat4_translate(self.pos[0], sy/2, self.pos[2]),
-                             mat4_scale(sx, sy, sz))
+            mat4_scale(sx, sy, sz))
             r.draw_cube(model, self.color, emissive=emissive)
             # Head
             head_model = mat4_mul(mat4_translate(self.pos[0], sy + 0.15, self.pos[2]),
-                                  mat4_scale(sx*0.6, 0.3, sz*0.6))
+            mat4_scale(sx*0.6, 0.3, sz*0.6))
             r.draw_cube(head_model, (self.color[0]*1.2, self.color[1]*1.2, self.color[2]*1.2))
 
 # ============================================================
@@ -815,7 +815,7 @@ class Bullet:
 
     def draw(self, r):
         model = mat4_mul(mat4_translate(self.pos[0], self.pos[1], self.pos[2]),
-                         mat4_scale(0.12, 0.12, 0.3))
+        mat4_scale(0.12, 0.12, 0.3))
         model = mat4_mul(model, mat4_rotate_y(math.atan2(self.vel[2], self.vel[0])))
         r.draw_cube(model, self.color, emissive=(0.6, 0.5, 0.2))
 
@@ -858,11 +858,11 @@ class LootItem:
         # Glow emissive
         emissive = (self.color[0]*0.5, self.color[1]*0.5, self.color[2]*0.5)
         model = mat4_mul(mat4_translate(self.pos[0], y, self.pos[2]),
-                         mat4_scale(0.4, 0.4, 0.4))
+        mat4_scale(0.4, 0.4, 0.4))
         r.draw_cube(model, self.color, emissive=emissive)
         # Ring on ground
         ring_model = mat4_mul(mat4_translate(self.pos[0], 0.02, self.pos[2]),
-                              mat4_scale(0.7, 1, 0.7))
+        mat4_scale(0.7, 1, 0.7))
         r.draw_quad(ring_model, self.color, emissive=emissive, alpha=0.5)
 
 # ============================================================
@@ -895,7 +895,7 @@ class Particle:
     def draw(self, r):
         alpha = max(0, self.life / self.max_life)
         model = mat4_mul(mat4_translate(self.pos[0], self.pos[1], self.pos[2]),
-                         mat4_scale(self.size, self.size, self.size))
+        mat4_scale(self.size, self.size, self.size))
         r.draw_cube(model, self.color, emissive=self.color, alpha=alpha)
 
 # ============================================================
@@ -926,7 +926,7 @@ class WaveManager:
             else:
                 if len(game.zombies) == 0:
                     self.between_waves = True
-                    self.countdown = 30.0
+                    self.countdown = 10.0
                     # Give player a small reward
                     game.player.ammo['pistol'] += 10
                     game.add_feedback("Wave Cleared! +10 Pistol Ammo", game.player.pos[:], (0, 1, 0))
@@ -1174,7 +1174,7 @@ class Game:
                 weights = [0.5, 0.25, 0.25]
                 choice = random.choices(ammo_types, weights=weights)[0]
                 self.loot.append(LootItem(x + random.uniform(-0.5, 0.5),
-                                           z + random.uniform(-0.5, 0.5), choice))
+                z + random.uniform(-0.5, 0.5), choice))
             elif r < 0.55:
                 self.loot.append(LootItem(x, z, 'medkit'))
             elif r < 0.65:
