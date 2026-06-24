@@ -15,3 +15,6 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 
 START_CHIPS = 1000
+
+# Debug visuals
+DEBUG_DRAW_HITBOX = False
