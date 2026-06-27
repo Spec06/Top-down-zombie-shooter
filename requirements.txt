@@ -5,3 +5,5 @@ pygame-ce
 PyOpenGL
 numpy
 pytest
+
+#for main_game.py: sys, math, random, ctypes, pygame, OpenGL.GL, OpenGL.GL.shaders
