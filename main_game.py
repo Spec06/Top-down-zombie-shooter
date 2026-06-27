@@ -942,20 +942,31 @@ class WaveManager:
 
     def _spawn_zombie(self, game):
         # Spawn outside player's view
-        angle = random.uniform(0, 2*math.pi)
-        dist = random.uniform(22, 30)
-        x = game.player.pos[0] + math.cos(angle) * dist
-        z = game.player.pos[2] + math.sin(angle) * dist
-        x = max(-WORLD_HALF+2, min(WORLD_HALF-2, x))
-        z = max(-WORLD_HALF+2, min(WORLD_HALF-2, z))
-        # Choose type
-        r = random.random()
-        if self.wave >= 3 and r < 0.15:
-            t = 'tank'
-        elif self.wave >= 2 and r < 0.40:
-            t = 'fast'
-        else:
-            t = 'normal'
+        while True:
+            angle = random.uniform(0, 2*math.pi)
+            dist = random.uniform(22, 30)
+            x = game.player.pos[0] + math.cos(angle) * dist
+            z = game.player.pos[2] + math.sin(angle) * dist
+            # Clamp to world boundaries (with a small buffer of 2 units)
+            x = max(-WORLD_HALF+2, min(WORLD_HALF-2, x))
+            z = max(-WORLD_HALF+2, min(WORLD_HALF-2, z))
+
+            # Determine zombie type and its half size for collision check
+            r = random.random()
+            if self.wave >= 3 and r < 0.15:
+                t = 'tank'
+                half_size = ZOMBIE_TYPES[t]['size'][0] / 2 # Use X dimension as primary half size for initial check
+            elif self.wave >= 2 and r < 0.40:
+                t = 'fast'
+                half_size = ZOMBIE_TYPES[t]['size'][0] / 2
+            else:
+                t = 'normal'
+                half_size = ZOMBIE_TYPES[t]['size'][0] / 2
+
+            # Check for collision with obstacles and walls
+            if not check_obstacle_collision(x, z, half_size, game.obstacles, game.walls):
+                break # Found a valid spot
+        
         game.zombies.append(Zombie(x, z, t))
 
 # ============================================================
