@@ -215,8 +215,8 @@ def make_hud_quad():
         [-0.5,-0.5,0],[0.5,0.5,0],[-0.5,0.5,0],
     ]
     texcoords = [
-        [0,0],[1,0],[1,1],
-        [0,0],[1,1],[0,1],
+        [0,1],[1,1],[1,0],
+        [0,1],[1,0],[0,0],
     ]
     return np.array(verts, dtype=np.float32), np.array(texcoords, dtype=np.float32)
 
