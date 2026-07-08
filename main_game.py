@@ -265,11 +265,11 @@ class Renderer:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glDisable(GL_CULL_FACE)
-        
+
         self.prog_phong = self._make_program(PHONG_VS, PHONG_FS)
         self.prog_flat = self._make_program(FLAT_VS, FLAT_FS)
         self.prog_text = self._make_program(TEXT_VS, TEXT_FS)
-        
+
         # Phong uniform locations
         self.p_uModel = glGetUniformLocation(self.prog_phong, "uModel")
         self.p_uView = glGetUniformLocation(self.prog_phong, "uView")
@@ -281,18 +281,18 @@ class Renderer:
         self.p_uEmissive = glGetUniformLocation(self.prog_phong, "uEmissive")
         self.p_uSpotlight = glGetUniformLocation(self.prog_phong, "uSpotlight")
         self.p_uAlpha = glGetUniformLocation(self.prog_phong, "uAlpha")
-        
+
         # Flat uniform locations
         self.f_uModel = glGetUniformLocation(self.prog_flat, "uModel")
         self.f_uProj = glGetUniformLocation(self.prog_flat, "uProj")
         self.f_uColor = glGetUniformLocation(self.prog_flat, "uColor")
-        
+
         # Text uniform locations
         self.t_uModel = glGetUniformLocation(self.prog_text, "uModel")
         self.t_uProj = glGetUniformLocation(self.prog_text, "uProj")
         self.t_uTex = glGetUniformLocation(self.prog_text, "uTex")
         self.t_uColor = glGetUniformLocation(self.prog_text, "uColor")
-        
+
         cv, cn = make_cube()
         self.cube_vao, self.cube_count = self._make_vao_pos_norm(cv, cn)
         cyv, cyn = make_cylinder()
@@ -301,7 +301,7 @@ class Renderer:
         self.quad_vao, self.quad_count = self._make_vao_pos_norm(qv, qn)
         hv, ht = make_hud_quad()
         self.hud_vao, self.hud_count = self._make_vao_pos_tex(hv, ht)
-        
+
         # State
         self.cur_view = mat4_identity()
         self.cur_proj = mat4_identity()
@@ -966,7 +966,7 @@ class WaveManager:
             # Check for collision with obstacles and walls
             if not check_obstacle_collision(x, z, half_size, game.obstacles, game.walls):
                 break # Found a valid spot
-        
+
         game.zombies.append(Zombie(x, z, t))
 
 # ============================================================
@@ -1073,14 +1073,14 @@ class Game:
         pygame.display.gl_set_attribute(pygame.GL_CONTEXT_PROFILE_MASK, pygame.GL_CONTEXT_PROFILE_CORE)
         pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
         pygame.display.gl_set_attribute(pygame.GL_DOUBLEBUFFER, 1)
-        
+
         self.screen = pygame.display.set_mode((SCREEN_W, SCREEN_H), pygame.DOUBLEBUF | pygame.OPENGL)
         pygame.display.set_caption("3D Top-Down Zombie Looter Shooter")
-        
+
         self.renderer = Renderer(SCREEN_W, SCREEN_H)
         self.renderer.text_cache = TextRenderer()
         self.text = self.renderer.text_cache
-        
+
         # Sound
         self.sound_ok = False
         self.sounds = {}
@@ -1095,7 +1095,7 @@ class Game:
         self.running = True
         self.state = STATE_MENU
         self.menu_option = 0
-        
+
         self.player = None
         self.zombies = []
         self.bullets = []
@@ -1294,33 +1294,33 @@ class Game:
         self._update_mouse_world(mx, my)
         self.player.update(dt, self, keys)
         self.wave_mgr.update(dt, self)
-        
+
         for z in self.zombies[:]:
             z.update(dt, self)
             if z.dead:
                 self.zombies.remove(z)
-        
+
         for b in self.bullets[:]:
             b.update(dt, self)
             if b.dead:
                 self.bullets.remove(b)
-        
+
         for l in self.loot[:]:
             l.update(dt, self)
             if l.picked:
                 self.loot.remove(l)
-        
+
         for p in self.particles[:]:
             p.update(dt)
             if p.dead:
                 self.particles.remove(p)
-        
+
         for f in self.feedback_texts[:]:
             f['life'] -= dt
             f['pos'][1] += f['vy'] * dt
             if f['life'] <= 0:
                 self.feedback_texts.remove(f)
-        
+
         if self.shake_time > 0:
             self.shake_time -= dt
             intensity = max(0, self.shake_time / 0.3) * self.shake_intensity
@@ -1328,7 +1328,7 @@ class Game:
                                  random.uniform(-1, 1) * intensity)
         else:
             self.shake_offset = (0, 0)
-        
+
         if self.player.hp <= 0:
             self.state = STATE_GAME_OVER
 
@@ -1371,11 +1371,11 @@ class Game:
     def _render(self):
         glClearColor(0.05, 0.05, 0.08, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        
+
         if self.state in (STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER):
             self._render_3d()
             self._render_hud()
-        
+
         if self.state == STATE_MENU:
             self._render_menu()
         elif self.state == STATE_PAUSED:
@@ -1389,11 +1389,11 @@ class Game:
         view_pos = [self.player.pos[0] + self.shake_offset[0], 30,
                     self.player.pos[2] + 20 + self.shake_offset[1]]
         self.renderer.begin_3d(self.view_matrix, self.proj_matrix, view_pos, self.player.pos)
-        
+
         # Ground
         ground_model = mat4_scale(WORLD_HALF*2, 1, WORLD_HALF*2)
         self.renderer.draw_quad(ground_model, (0.25, 0.25, 0.25))
-        
+
         # Grid lines for visual reference (use small quads)
         for i in range(-5, 6):
             x = i * 10
@@ -1403,42 +1403,42 @@ class Game:
             # Z grid line
             m = mat4_mul(mat4_translate(0, 0.01, x), mat4_scale(WORLD_HALF*2, 1, 0.05))
             self.renderer.draw_quad(m, (0.3, 0.3, 0.3), alpha=0.5)
-        
+
         # Blood decals
         for d in self.decals:
             m = mat4_mul(mat4_mul(mat4_translate(d['x'], 0.02, d['z']),
-                                   mat4_rotate_y(d['rot'])),
-                         mat4_scale(d['size'], 1, d['size']))
+                                    mat4_rotate_y(d['rot'])),
+                        mat4_scale(d['size'], 1, d['size']))
             self.renderer.draw_quad(m, (0.5, 0.05, 0.05), alpha=0.7)
-        
+
         # Obstacles
         for obs in self.obstacles:
             m = mat4_mul(mat4_translate(obs['x'], obs['h']/2, obs['z']),
-                         mat4_scale(obs['w'], obs['h'], obs['d']))
+                        mat4_scale(obs['w'], obs['h'], obs['d']))
             self.renderer.draw_cube(m, (0.5, 0.4, 0.3))
-        
+
         # Walls
         for w in self.walls:
             m = mat4_mul(mat4_translate(w['x'], w['h']/2, w['z']),
-                         mat4_scale(w['w'], w['h'], w['d']))
+                        mat4_scale(w['w'], w['h'], w['d']))
             self.renderer.draw_cube(m, (0.2, 0.2, 0.25))
-        
+
         # Loot
         for l in self.loot:
             l.draw(self.renderer)
-        
+
         # Particles
         for p in self.particles:
             p.draw(self.renderer)
-        
+
         # Bullets
         for b in self.bullets:
             b.draw(self.renderer)
-        
+
         # Zombies
         for z in self.zombies:
             z.draw(self.renderer)
-        
+
         # Player
         self.player.draw(self.renderer)
 
@@ -1452,12 +1452,12 @@ class Game:
         r.draw_hud_quad(0, 0, SCREEN_W, SCREEN_H, (0.05, 0.05, 0.1))
         r.draw_text(self.text, "3D ZOMBIE LOOTER SHOOTER", SCREEN_W//2, 150, 'huge', (200, 50, 50), center=True)
         r.draw_text(self.text, "Survive the endless waves", SCREEN_W//2, 240, 'med', (200, 200, 200), center=True)
-        
+
         options = ["New Game", "Quit"]
         for i, opt in enumerate(options):
             color = (255, 220, 100) if i == self.menu_option else (200, 200, 200)
             r.draw_text(self.text, opt, SCREEN_W//2, 400 + i*60, 'large', color, center=True)
-        
+
         r.draw_text(self.text, "WASD: Move | Mouse: Aim | LMB: Shoot | R: Reload | Shift: Sprint | F: Medkit | 1-3: Weapons", SCREEN_W//2, SCREEN_H - 50, 'small', (180, 180, 180), center=True)
         r.draw_text(self.text, "ESC: Pause | Up/Down: Navigate | Enter: Select", SCREEN_W//2, SCREEN_H - 25, 'small', (180, 180, 180), center=True)
         self.renderer.end_hud()
