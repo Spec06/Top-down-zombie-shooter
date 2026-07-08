@@ -2,7 +2,6 @@
 # Run: python main_game.py
 """
 3D Top-Down Zombie Looter Shooter - Single File Implementation
-All assets are procedurally generated. No external files needed.py -m pip install
 """
 
 import sys, math, random, ctypes
