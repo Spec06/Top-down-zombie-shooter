@@ -15,7 +15,7 @@ from OpenGL.GL.shaders import compileShader, compileProgram
 # ============================================================
 # Constantspy -m pip install
 # ============================================================
-SCREEN_W, SCREEN_H = 1920, 1080
+SCREEN_W, SCREEN_H = 720, 480
 FPS = 120
 WORLD_HALF = 50.0
 
@@ -1083,7 +1083,7 @@ class Game:
         # Sound
         self.sound_ok = False
         self.sounds = {}
-        try:py -m pip install
+        try:
             mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
             self.sound_ok = True
             self._make_sounds()
