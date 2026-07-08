@@ -979,15 +979,15 @@ class HUD:
         hp_w = w * (game.player.hp / game.player.MAX_HP)
         r.draw_hud_quad(x, y, hp_w, h, (0.8, 0.1, 0.1))
         r.draw_hud_quad(x-2, y-2, w+4, h+4, (0, 0, 0), alpha=0.0)  # spacer
-        r.draw_text(text, "HP", x + 5, y + 2, 'small', (255, 255, 255))
-        r.draw_text(text, f"{int(game.player.hp)}/{game.player.MAX_HP}", x + w - 50, y + 2, 'small', (255, 255, 255))
+        r.draw_text(text, "HP", x + 4, y, 'small', (255, 255, 255))
+        r.draw_text(text, f"{int(game.player.hp)}/{game.player.MAX_HP}", x + w - 75, y, 'small', (255, 255, 255))
 
         # Stamina bar
         y2 = y - 25
         r.draw_hud_quad(x, y2, w, h, (0.2, 0.2, 0))
         st_w = w * (game.player.stamina / game.player.MAX_STAMINA)
         r.draw_hud_quad(x, y2, st_w, h, (0.9, 0.8, 0.1))
-        r.draw_text(text, "STA", x + 5, y2 + 2, 'small', (255, 255, 255))
+        r.draw_text(text, "STA", x + 5, y2, 'small', (255, 255, 255))
 
         # Weapon info
         y3 = y2 - 60
@@ -998,16 +998,16 @@ class HUD:
             ammo_str = f"{game.player.magazine[wkey]} / {game.player.ammo[wkey]}"
             r.draw_text(text, ammo_str, x, y3 + 28, 'small', (255, 220, 100))
             if game.player.reloading:
-                r.draw_text(text, "RELOADING...", x, y3 + 50, 'small', (255, 100, 100))
+                r.draw_text(text, "RELOADING...", x + 75, y3, 'med', (255, 100, 100))
         # Medkits
-        r.draw_text(text, f"Medkits: {game.player.consumables} (F)", x, y3 + 75, 'small', (255, 100, 100))
+        r.draw_text(text, f"Medkits: {game.player.consumables} (F)", x, y3 -25, 'small', (255, 100, 100))
 
         # Wave info (top left)
         r.draw_text(text, f"Wave: {game.wave_mgr.wave}", 20, 20, 'med', (255, 255, 255))
         r.draw_text(text, f"Zombies: {len(game.zombies)}", 20, 50, 'small', (255, 100, 100))
         r.draw_text(text, f"Score: {game.score}", 20, 75, 'small', (255, 220, 100))
         r.draw_text(text, f"Kills: {game.total_kills}", 20, 100, 'small', (200, 200, 200))
-
+        
         # Inventory (top right)
         for i in range(3):
             slot_x = SCREEN_W - 200 + i * 60
