@@ -1,9 +1,8 @@
-# pip install pygame PyOpenGL numpy
+# py -m pip install pygame-ce PyOpenGL numpy pytest
 # Run: python main_game.py
-#& "C:\Users\Reichskommandant\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" main_game.py
 """
 3D Top-Down Zombie Looter Shooter - Single File Implementation
-All assets are procedurally generated. No external files needed.
+All assets are procedurally generated. No external files needed.py -m pip install
 """
 
 import sys, math, random, ctypes
@@ -14,7 +13,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 
 # ============================================================
-# Constants
+# Constantspy -m pip install
 # ============================================================
 SCREEN_W, SCREEN_H = 1920, 1080
 FPS = 120
@@ -1084,7 +1083,7 @@ class Game:
         # Sound
         self.sound_ok = False
         self.sounds = {}
-        try:
+        try:py -m pip install
             mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
             self.sound_ok = True
             self._make_sounds()
