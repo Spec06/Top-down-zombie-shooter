@@ -1,7 +1,7 @@
 # py -m pip install pygame-ce PyOpenGL numpy pytest
 # Run: python main_game.py
 """
-3D Top-Down Zombie Looter Shooter - Single File Implementation
+3D Top-Down Zombie Looter Shooter
 """
 
 import sys, math, random, ctypes
@@ -12,9 +12,9 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileShader, compileProgram
 
 # ============================================================
-# Constantspy -m pip install
+# Constants
 # ============================================================
-SCREEN_W, SCREEN_H = 720, 480
+SCREEN_W, SCREEN_H = 920, 600
 FPS = 120
 WORLD_HALF = 50.0
 
