@@ -1,4 +1,4 @@
-# Gambling (Poker Prototype)
+# Top Down (Prototype)
 
 Small pygame-based poker prototype. Run locally with Python and pygame installed.
 
