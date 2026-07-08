@@ -14,7 +14,7 @@ from OpenGL.GL.shaders import compileShader, compileProgram
 # ============================================================
 # Constants
 # ============================================================
-SCREEN_W, SCREEN_H = 920, 600
+SCREEN_W, SCREEN_H = 1200, 800
 FPS = 120
 WORLD_HALF = 50.0
 
