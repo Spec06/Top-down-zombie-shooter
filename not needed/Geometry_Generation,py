@@ -1,0 +1,114 @@
+import numpy as np
+import math
+import importlib.util
+from pathlib import Path
+
+# Matrix-Funktionen aus der separaten Datei laden
+matrix_path = Path(__file__).resolve().parents[1] / "ui" / "Matrix _3D_math_renderer.py"
+spec = importlib.util.spec_from_file_location("matrix_renderer", matrix_path)
+matrix_mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(matrix_mod)
+
+mat4_translate = matrix_mod.mat4_translate
+mat4_scale = matrix_mod.mat4_scale
+mat4_rotate_y = matrix_mod.mat4_rotate_y
+mat4_rotate_x = matrix_mod.mat4_rotate_x
+mat4_ortho = matrix_mod.mat4_ortho
+mat4_look_at = matrix_mod.mat4_look_at
+mat4_mul = matrix_mod.mat4_mul
+
+# ============================================================
+# Würfel erzeugen
+# ============================================================
+def make_cube():
+    vertices = np.array([
+        [-0.5, -0.5,  0.5],  # 0
+        [ 0.5, -0.5,  0.5],  # 1
+        [ 0.5,  0.5,  0.5],  # 2
+        [-0.5,  0.5,  0.5],  # 3
+        [-0.5, -0.5, -0.5],  # 4
+        [ 0.5, -0.5, -0.5],  # 5
+        [ 0.5,  0.5, -0.5],  # 6
+        [-0.5,  0.5, -0.5],  # 7
+    ], dtype=np.float32)
+
+    faces = [
+        [0, 1, 2, 3],  # vorne
+        [1, 5, 6, 2],  # rechts
+        [5, 4, 7, 6],  # hinten
+        [4, 0, 3, 7],  # links
+        [3, 2, 6, 7],  # oben
+        [4, 5, 1, 0],  # unten
+    ]
+
+    triangles = []
+    for face in faces:
+        a = vertices[face[0]]
+        b = vertices[face[1]]
+        c = vertices[face[2]]
+        d = vertices[face[3]]
+
+        # Flächen-Normale berechnen
+        n = np.cross(b - a, c - a)
+        n = n / np.linalg.norm(n)
+
+        triangles.append((a, b, c, n))
+        triangles.append((a, c, d, n))
+
+    return triangles
+
+
+def draw_cube(x=0.0, y=0.0, z=0.0, angle=0.0, scale=1.0):
+    model = mat4_translate(x, y, z) @ mat4_rotate_y(angle)
+    model = model @ mat4_scale(scale, scale, scale)
+
+    for a, b, c, normal in make_cube():
+        # Vektoren in Homogenen Raum bringen
+        pa = np.array([a[0], a[1], a[2], 1.0], dtype=np.float32)
+        pb = np.array([b[0], b[1], b[2], 1.0], dtype=np.float32)
+        pc = np.array([c[0], c[1], c[2], 1.0], dtype=np.float32)
+
+        # Model-Transformation
+        pa = model @ pa
+        pb = model @ pb
+        pc = model @ pc
+
+        # Kamera und Projektion
+        # view = mat4_look_at(...)
+        # proj = mat4_ortho(...)
+        # pa = proj @ view @ pa
+        # pb = proj @ view @ pb
+        # pc = proj @ view @ pc
+
+        # OpenGL zeichnen
+        glBegin(GL_TRIANGLES)
+        glNormal3fv(normal)
+        glVertex3fv(pa[:3])
+        glVertex3fv(pb[:3])
+        glVertex3fv(pc[:3])
+        glEnd()
+
+def demo_cube_matrix():
+    angle = 0.0
+    x, y, z = 0.0, 0.0, 0.0
+
+    eye = np.array([0.0, 2.0, 5.0], dtype=np.float32)
+    target = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    up = np.array([0.0, 1.0, 0.0], dtype=np.float32)
+
+    view = mat4_look_at(eye, target, up)
+    proj = mat4_ortho(-5, 5, -5, 5, 0.1, 100.0)
+
+    model = mat4_translate(0.0, 0.0, 0.0) @ mat4_rotate_y(angle)
+    final = proj @ view @ model
+
+    p = final @ np.array([x, y, z, 1.0])
+    print("Cube demo ok")
+    print("View matrix shape:", view.shape)
+    print("Projection matrix shape:", proj.shape)
+    print("Final transform shape:", final.shape)
+    print("Transformed point:", p)
+
+
+if __name__ == "__main__":
+    demo_cube_matrix()

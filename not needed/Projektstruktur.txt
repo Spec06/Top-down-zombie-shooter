@@ -1,0 +1,37 @@
+Projekt/
+├── main.py
+├── settings.py
+├── requirements.txt
+├── .venv/
+├── assets/
+│   ├── images/
+│   ├── audio/
+│   └── fonts/
+├── entities/
+│   ├── player.py
+│   ├── enemy.py
+│   ├── projectile.py
+│   └── world_object.py
+├── components/
+│   ├── health.py
+│   ├── movement.py
+│   ├── attack.py
+│   └── weapon.py
+├── systems/
+│   ├── render_system.py
+│   ├── combat_system.py
+│   ├── camera_system.py
+│   ├── input_system.py
+│   └── spawn_system.py
+├── ui/
+│   ├── hud.py
+│   ├── menu.py
+│   └── button.py
+├── scripts/
+│   ├── level_loader.py
+│   └── spawn_manager.py
+├── tests/
+│   ├── test_player.py
+│   ├── test_combat.py
+│   └── test_camera.py
+└── README.md

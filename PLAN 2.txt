@@ -1,0 +1,317 @@
+Updated todo list
+
+Super — hier kommt die präzise, umsetzbare Checkliste (B), Datei für Datei, mit genauen Signaturen, Beispielaufrufen und kurzen Testfällen. Folge die Reihenfolge strikt; nach jeder Datei: bauen, starten, prüfen. Ich gebe pro Datei genau an, welche Funktionen/Klassen du schreiben sollst und wie du sie kurz testest.
+
+Hinweis zum Stil: Verwende Typ-Hints (optional) — sie machen Tests/Refactor später leichter. Nutze in allen Dateien oben einen kurzen 1–2‑Zeiler Kommentar mit Zweck.
+
+Allgemeine Befehle
+- venv anlegen + aktivieren (PowerShell):
+  . python -m venv .venv
+  . .\.venv\Scripts\Activate.ps1
+- Abhängigkeiten installieren:
+  . pip install -r requirements.txt
+- Spiel starten (während Entwicklung):
+  . python Projekt\main.py
+- Tests:
+  . pytest -q tests/
+
+1) requirements.txt + .gitignore
+- requirements.txt (minimal):
+  pygame>=2.0
+  numpy
+  PyOpenGL
+  pytest
+- .gitignore:
+  .venv/
+  __pycache__/
+  *.pyc
+  .vscode/
+
+Commit-Nachricht: "Add requirements and gitignore"
+
+2) Projekt/settings.py
+- Zweck: zentrale Konstanten / Feature-Flags
+- Signaturen / Inhalte:
+  SCREEN_WIDTH: int = 1280
+  SCREEN_HEIGHT: int = 720
+  FPS: int = 60
+  PLAYER_SPEED: float = 5.0
+  PLAYER_RADIUS: float = 0.3
+  DEBUG_DRAW_HITBOX: bool = False
+  CAMERA_DISTANCE: float = 8.0
+  CAMERA_PITCH: float = 30.0
+- Beispiel (settings.py):
+  SCREEN_WIDTH = 1280
+  SCREEN_HEIGHT = 720
+  FPS = 60
+  PLAYER_SPEED = 5.0
+  DEBUG_DRAW_HITBOX = False
+- Test:
+  python -c "import Projekt.settings as s; print(s.SCREEN_WIDTH)"
+- Commit: "Add settings constants"
+
+3) Projekt/main.py
+- Zweck: Einstieg, init, Loop, orchestriert Systeme
+- Signaturen:
+  def main() -> None
+  def game_loop() -> None
+- Minimal-Workflow:
+  - pygame.init()
+  - screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), DOUBLEBUF|OPENGL)
+  - render_system.init_opengl(...)
+  - player = Player()
+  - camera = Camera(player)
+  - while running: events = input_system.poll_input(); player.update(dt, events); camera.update(player); render_system.draw_scene(...)
+- Beispiel (pseudocode):
+  def main():
+      pg.init()
+      screen = pg.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), DOUBLEBUF|OPENGL)
+      render_system.init_opengl(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT)
+      player = Player(0,0)
+      camera = Camera(player)
+      clock = pg.time.Clock()
+      while True:
+          dt = clock.tick(settings.FPS) / 1000.0
+          input_state = poll_input()
+          if input_state['quit']: break
+          player.update(dt, input_state)
+          camera.update(player)
+          render_system.begin_frame()
+          render_system.draw_ground()
+          render_system.draw_player(player)
+          render_system.end_frame()
+- Minimal-Test:
+  - Starten: python Projekt\main.py
+  - Erwartet: Fenster öffnet, kein Exception, Esc schließt
+- Commit: "Add main entry and loop"
+
+4) Projekt/entities/player.py
+- Zweck: Player-Daten + Bewegung
+- Signatur:
+  class Player:
+      def __init__(self, x: float = 0.0, z: float = 0.0) -> None
+      def update(self, dt: float, input_state: dict) -> None
+      def rotate(self, dt: float, input_state: dict) -> None
+      @property def position(self) -> np.ndarray
+      @property def rotation(self) -> float
+- Implementationshinweise:
+  - Intern: self._pos = np.array([x, 0.5, z], dtype=float)
+  - Rotation in Grad, forward vector = [sin(yaw), 0, -cos(yaw)] (oder cos/sin je nach Konvention)
+  - Bewegung normalisieren: if np.linalg.norm(move)>0: move/=norm; self._pos += move * PLAYER_SPEED * dt
+- Beispiel-Aufruf:
+  p = Player(0,0)
+  p.update(0.016, {'keys': keys})
+- Test (manuell):
+  - In main.py: instantiate player, call update with fake input (e.g., keys[K_w]=True), print position before/after
+  - Assert position changed in z/x
+- Unit-Test (pytest):
+  def test_player_moves_forward():
+      p = Player(0,0)
+      keys = {K_w: True}
+      p.update(1.0, {'keys': keys})
+      assert abs(p._pos[2]) > 0
+- Commit: "Add Player entity with basic movement"
+
+5) Projekt/systems/input_system.py
+- Zweck: Kapselt Pygame-Events und Key-State in ein leichtes dict
+- Signatur:
+  def poll_input() -> dict
+- Output-Format (empfohlen):
+  {
+    'quit': bool,
+    'keys': pygame.key.ScancodeWrapper (oder mapping),
+    'events': list_of_events,
+    'mouse': {'pos': (x,y), 'buttons': (b1,b2,b3)}
+  }
+- Beispiel:
+  def poll_input():
+      events = pg.event.get()
+      keys = pg.key.get_pressed()
+      quit = any(e.type == pg.QUIT for e in events)
+      return {'quit': quit, 'keys': keys, 'events': events}
+- Test:
+  - main.py: input = poll_input(); print(input['keys'][K_w]) while press W
+- Commit: "Add input_system with poll_input"
+
+6) Projekt/systems/camera_system.py
+- Zweck: Kameraposition berechnen und anwenden
+- Signatur:
+  class Camera:
+      def __init__(self, target_entity, distance: float = settings.CAMERA_DISTANCE, pitch: float = settings.CAMERA_PITCH)
+      def update(self, player: Player) -> None
+      def apply(self) -> None   # führt gluLookAt oder glMultMatrixf aus
+- Implementationsempfehlung (gluLookAt):
+  - cam_x = player.x + d * cos(pitch) * sin(yaw)
+  - cam_y = player.y + d * sin(pitch)
+  - cam_z = player.z + d * cos(pitch) * cos(yaw)
+  - gluLookAt(cam_x, cam_y, cam_z, player.x, player.y, player.z, 0,1,0)
+- Test:
+  - main loop: camera.update(player); camera.apply(); draw scene; bewege Player und prüfe, ob Kamera folgt
+- Commit: "Add Camera system with apply()"
+
+7) Projekt/systems/render_system.py
+- Zweck: Alle OpenGL-Initialisierung und einfache Draw-Funktionen
+- Signaturen:
+  def init_opengl(width: int, height: int) -> None
+  def begin_frame() -> None   # glClear etc.
+  def end_frame() -> None     # pygame.display.flip()
+  def draw_ground(size: float = 30.0) -> None
+  def draw_cube(pos: Sequence[float], size: float, color: Sequence[float]) -> None
+  def draw_text(screen_surface, text: str, x:int, y:int, size:int=18) -> None  # optional 2D overlay
+- Hinweise:
+  - Anfangs fixed-function ist OK (glBegin/glEnd)
+  - init_opengl setzt GL_PROJECTION (gluPerspective) und GL_MODELVIEW
+  - end_frame ruft pygame.display.flip() oder pygame.display.gl_swap()
+- Test:
+  - main: render_system.init_opengl(); draw_ground(); draw_cube(player.pos,...); end_frame()
+  - Erwartung: sichtbarer Boden, sichtbarer Cube
+- Commit: "Add render_system with basic draw primitives"
+
+8) Projekt/entities/projectile.py
+- Zweck: Projektil mit Bewegung und Lebenszeit
+- Signatur:
+  class Projectile:
+      def __init__(self, start_pos: Sequence[float], direction: Sequence[float], speed: float = 20.0, lifetime: float = 5.0) -> None
+      def update(self, dt: float) -> None
+      def is_alive(self) -> bool
+      @property def position(self) -> np.ndarray
+- Implementation:
+  - self.velocity = unit(direction) * speed
+  - self._pos += self.velocity * dt
+  - self._age += dt; alive if _age < lifetime
+- Test:
+  - spawn auf SPACE in main; sichtbar als kleiner cube; bewegt sich
+- Commit: "Add Projectile entity"
+
+9) Projekt/components/health.py
+- Zweck: Health-Komponente wiederverwendbar
+- Signatur:
+  class Health:
+      def __init__(self, max_hp: int)
+      def take_damage(self, amount: float) -> None
+      def heal(self, amount: float) -> None
+      def is_dead(self) -> bool
+- Test (pytest):
+  def test_health_take_damage():
+      h = Health(10)
+      h.take_damage(3)
+      assert h.current == 7
+- Commit: "Add Health component"
+
+10) Projekt/components/attack.py
+- Zweck: Attack-Definition (Melee oder projectile)
+- Signatur:
+  class Attack:
+      def __init__(self, damage: float, range: float, cooldown: float)
+      def can_attack(self, now: float) -> bool
+      def trigger(self, now: float) -> bool   # setzt last_attack
+- Test:
+  - Attack.can_attack True nach cooldown vorbei
+- Commit: "Add Attack component"
+
+11) Projekt/systems/combat_system.py
+- Zweck: Trefferberechnung und Lebensmanagement
+- Signaturen:
+  class CombatSystem:
+      def __init__(self)
+      def perform_melee(self, attacker_entity, attack_comp: Attack, targets: list) -> list  # returns hit targets
+      def handle_projectiles(self, projectiles: list, targets: list) -> list  # removes hit projectiles/affects targets
+- Implementationsdetails:
+  - melee: for t in targets: if distance(attacker.pos, t.pos) <= attack.range: t.health.take_damage(attack.damage)
+  - projectile: sphere-sphere collision (distance < r1+r2)
+- Tests:
+  - pytest: create dummy target with Health and position, call perform_melee -> hp reduced
+- Commit: "Add CombatSystem with melee/projectile handling"
+
+12) Projekt/entities/enemy.py
+- Zweck: enemy mit einfacher AI (zueinander bewegen)
+- Signatur:
+  class Enemy:
+      def __init__(self, x: float, z: float, speed: float = 1.5)
+      def update(self, dt: float, player: Player) -> None
+      def is_dead(self) -> bool
+      def add_component(self, name: str, comp) -> None
+- Implementation:
+  - move toward player: dir = normalize(player.pos - enemy.pos); pos += dir * speed * dt
+- Test:
+  - spawn in main via SpawnManager -> enemy bewegen sich
+- Commit: "Add Enemy entity"
+
+13) Projekt/scripts/spawn_manager.py
+- Zweck: Spawn-Funktionen
+- Signatur:
+  class SpawnManager:
+      def spawn_enemies(self, EnemyClass, count: int, center: tuple, radius: float, **kwargs) -> list
+- Implementation:
+  - zufällige Positionen in Kreis, instantiate EnemyClass
+- Test:
+  - main: enemies = SpawnManager().spawn_enemies(Enemy, 3, (0,0), 6.0)
+- Commit: "Add SpawnManager"
+
+14) Projekt/ui/hud.py
+- Zweck: HUD-Overlay (Leben, Score)
+- Signatur:
+  class HUD:
+      def __init__(self, font_name: str = 'Arial', font_size: int = 18)
+      def draw(self, player: Player, screen) -> None
+- Implementation:
+  - für OpenGL: render text via pygame.font -> surface -> string to texture OR blit on top via pygame.display if easier
+  - Minimal: print HP in console and draw simple textured quad later
+- Tests:
+  - In-game: HUD.draw zeigt HP-Text oben links
+- Commit: "Add HUD (health display)"
+
+15) Projekt/ui/menu.py
+- Zweck: Startmenu/Pause
+- Signatur:
+  class Menu:
+      def __init__(self)
+      def show(self, screen) -> None
+      def handle_input(self, input_state) -> str  # returns 'start'|'quit'|'none'
+- Test:
+  - main: before starting game loop show menu; ENTER starts game
+- Commit: "Add Menu"
+
+16) Projekt/tests/ (einfach)
+- test_health.py
+  def test_health():
+      h = Health(5)
+      h.take_damage(2)
+      assert h.current == 3
+- test_projectile.py
+  def test_projectile_moves():
+      p = Projectile([0,0,0],[1,0,0], speed=10.0, lifetime=1.0)
+      p.update(0.1)
+      assert p.position[0] == pytest.approx(1.0) or > 0
+- Commit: "Add basic unit tests"
+
+17) Refactor / package init
+- Optional: Projekt als Paket (Projekt/__init__.py) exportieren bestimmte API
+- README: Dev-Run guide, coding conventions
+
+Tägliche Dev-Loop (empfohlen)
+- Implementiere eine Datei → commit
+- Starte main.py → verifiziere minimalen Test
+- Wenn Fehler: stoppe, debugge lokal (prints, set DEBUG_DRAW_HITBOX True)
+- Wenn alles OK → nächste Datei
+
+Konkrete Fehlerquellen / Tips
+- Pygame + PyOpenGL: bei OpenGL-Fehlern zuerst mit 2D blits testen (pygame.Surface.blit) bevor Shader/GL-Code
+- Vektor-Richtungen: Konvention (Z-Forward oder -Z-Forward) konsistent halten
+- Kollisionsradius: kleine Toleranzen (epsilon) verwenden
+- Delta time: clock.tick(FPS)/1000.0 → dt in Sekunden
+- Beim Multithreading / Asynchronität: keine, alles im Hauptthread
+
+Beispiel-Workflow für die nächsten 2 Stunden (konkret)
+1. Erstelle settings.py (5–10min)
+2. Implementiere barebones main.py (20min): window open, background color, ESC quits
+3. Implementiere render_system.init_opengl + draw_ground + draw_cube (30min): minimaler GL-Code
+4. Implementiere entities/player.py (40min): update / rotate
+5. In main.py: instantiate player + draw_player (10min) → teste (run)
+
+Wenn du willst, kann ich dir jetzt für die erste Datei (settings.py) den exakten Minimal-Code erzeugen oder für die nächsten N Dateien in einem Block die konkreten Code-Snippets liefern (du copy-pastest sie). Sag mir, ob du:
+- Schritt-für-Schritt: "Erzeuge jetzt settings.py" (ich liefere den Code)
+oder
+- Bulk: "Liefere Skelette für die nächsten 3 Dateien (main.py, render_system.py, entities/player.py)" (ich liefere sie zusammen).
+
+Welche Variante möchtest du als Nächstes?

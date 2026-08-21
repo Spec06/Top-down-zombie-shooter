@@ -1,0 +1,370 @@
+
+Ja — ich habe dir dafür einen klaren, selbstlernenden Aufbauplan gemacht, damit du das Projekt Schritt für Schritt selbst baust, verstehst und zwischenzeitlich immer mit der Pygame-Ansicht testen kannst.
+
+Ziel:
+- Du baust das Spiel ähnlich wie in `main_game.py`
+- aber in einer saubereren Projektstruktur wie in `Projekt/`
+- mit Fokus auf „selbst programmieren, verstehen, testen, verändern“
+
+Grundidee:
+- Nicht alles auf einmal bauen
+- Erst das Spielprinzip verstehen
+- Dann in Module aufteilen
+- Nach jedem Schritt die Pygame-Ansicht öffnen und prüfen
+
+1) Deine Lernstrategie
+
+Du sollst in dieser Reihenfolge vorgehen:
+1. Fenster + Game Loop verstehen
+2. Player + Bewegung + Kamera verstehen
+3. Welt + Gegner + Projektil + Kollision verstehen
+4. Kampf + UI + States verstehen
+5. Ordnerstruktur sauber aufteilen
+6. Refactoring und Erweiterbarkeit
+7. Abschluss: eigenes Spiel mit eigener Struktur
+
+Das ist der wichtigste Punkt: Du willst nicht nur „ein Programm abtippen“, sondern wirklich jede Logik nachvollziehen können.
+
+2) Die Struktur, die du am Ende haben willst
+
+So sollte dein Projekt ungefähr aussehen:
+
+Projekt/
+├── main.py
+├── settings.py
+├── requirements.txt
+├── .venv/
+├── assets/
+│   ├── images/
+│   ├── audio/
+│   └── fonts/
+├── entities/
+│   ├── player.py
+│   ├── enemy.py
+│   ├── projectile.py
+│   └── world_object.py
+├── components/
+│   ├── health.py
+│   ├── movement.py
+│   ├── attack.py
+│   └── weapon.py
+├── systems/
+│   ├── render_system.py
+│   ├── combat_system.py
+│   ├── camera_system.py
+│   ├── input_system.py
+│   └── spawn_system.py
+├── ui/
+│   ├── hud.py
+│   ├── menu.py
+│   └── button.py
+├── scripts/
+│   ├── level_loader.py
+│   └── spawn_manager.py
+├── tests/
+│   ├── test_player.py
+│   ├── test_combat.py
+│   └── test_camera.py
+└── README.md
+
+Das ist praktisch die Struktur aus deinem `Projekt`-Ordner, aber du wirst sie nur nach und nach auffüllen.
+
+3) Der Arbeitsplan mit Phasen
+
+Phase 1 — Projekt aufsetzen
+Ziel:
+- saubere Umgebung
+- läuft lokal
+- du kannst das Fenster sofort öffnen
+
+Aufgaben:
+- `.venv` erstellen
+- `requirements.txt` mit pygame, numpy, PyOpenGL anlegen
+- `main.py` als Einstiegspunkt
+- `settings.py` für Auflösung, FPS, Farben, Debug-Modus
+- Startscript oder PowerShell-Befehle notieren
+
+
+..........
+
+
+Was du dabei lernst:
+- Python-Umgebung
+- Pygame initialisieren
+- Fenster öffnen
+- kein „Black Box“-Code mehr
+
+Test:
+- `python main.py`
+- Fenster muss sich öffnen
+- wenn nicht: nur dieses Problem lösen
+
+Wichtiger Lerncheckpoint:
+- Du musst wissen, was `pygame.init()`, `pygame.display.set_mode()`, `clock.tick()` und `while running:` macht.
+
+Phase 2 — Einfache Game-Loop bauen
+Ziel:
+- Ein funktionierendes, kleines Fenster mit Tick-Schleife
+- Grundgerüst für Update + Render
+
+Aufgaben:
+- Event-Schleife (`QUIT`, `KEYDOWN`, `ESC`)
+- Delta-Time (`dt`)
+- `update()` und `draw()` sauber trennen
+- erster leerer Bildschirm oder einfacher Boden
+- Debug-Text im Fenster
+
+Was du dabei lernst:
+- Spielzustand
+- Frame-Loop
+- Render-Update-Kennung
+
+Test:
+- Fenster öffnet
+- Klicken auf Schließen funktioniert
+- ESC beendet das Spiel
+
+Phase 3 — Player und Steuerung
+Ziel:
+- du bewegst deinen Charakter mit W/A/S/D
+- Rotation mit Links/Rechts
+- Kamera folgt dem Spieler
+
+Aufgaben:
+- `entities/player.py`
+- Position, Rotation, Geschwindigkeit
+- input handling
+- Camera-Klasse
+- optionaler Debug-Kreis um den Spieler
+
+Was du dabei lernst:
+- Vektoren
+- Rotation
+- Bewegungslogik
+- Sichtpunkt / Kamera
+
+Test:
+- Bewegung funktioniert
+- Rotation funktioniert
+- Person erscheint im Sichtbereich
+- Kamera bleibt stabil
+
+Phase 4 — Welt und Objekte
+Ziel:
+- einfaches Level mit Boden und Objekten
+- einfache Kollisionslogik
+- Leistungsfähigkeit aufbauen
+
+Aufgaben:
+- `world_object.py`
+- `scripts/spawn_manager.py`
+- Boden / Boxen / Ziele
+- Kollision zwischen Player und Objekten
+- Debug-Hitboxen
+
+Was du dabei lernst:
+- Kollisionserkennung
+- statische Weltobjekte
+- einfache Level-Logik
+
+Test:
+- Du kannst mit W/A/S/D durch die Welt
+- beim Berühren von Objekten passiert etwas
+- Debug-Kreise helfen beim Verständnis
+
+Phase 5 — Gegner und Kampf
+Ziel:
+- Gegner spawnen
+- Gegner bewegen sich
+- Player kann angreifen
+
+Aufgaben:
+- `entities/enemy.py`
+- `entities/projectile.py`
+- `components/health.py`
+- `components/attack.py`
+- `systems/combat_system.py`
+
+Was du dabei lernst:
+- Spielobjekt-Logik
+- Lebenspunkte
+- Verhaltenslogik
+- Kampfsystem
+
+Test:
+- Gegner erscheinen
+- mit SPACE angreifen
+- Gegner verlieren Leben
+- Gegner sterben korrekt
+
+Phase 6 — UI und Spielzustände
+Ziel:
+- Menü / Pause / Spiel / Game Over
+- HUD mit Leben, Punkte, Waffe
+
+Aufgaben:
+- `ui/hud.py`
+- `ui/menu.py`
+- `GameState` oder Zustände
+- `settings.py` erweitern
+- Startbildschirm, Pause, Game Over
+
+Was du dabei lernst:
+- Zustandsmanagement
+- UI-Design
+- Spielfluss
+
+Test:
+- Startbildschirm erscheint
+- Pause funktioniert
+- Game-over erscheint richtig
+
+Phase 7 — Refactoring
+Ziel:
+- Der Code soll nicht mehr ein Monolith sein
+- du sollst wirklich wissen, wo was liegt
+
+Aufgaben:
+- `main.py` nur noch Einstieg
+- Logik in verschiedene Module verschieben
+- Zugriff über Klassen und Methoden
+- Konstanten in `settings.py`
+
+Was du dabei lernst:
+- saubere Architektur
+- code organisation
+- Erweiterbarkeit
+
+Test:
+- Spiel läuft weiterhin
+- keine Funktion ist verloren gegangen
+- du kannst einzelne Module ändern, ohne alles neu zu schreiben
+
+Phase 8 — Erweiterung und Experimentieren
+Ziel:
+- du kannst eigene Ideen testen
+
+Mögliche Erweiterungen:
+- Mehr Waffen
+- Mehr Gegnerarten
+- Projektile mit Schwerkraft
+- Mini-Map
+- Sound
+- Splash-/Hit-Effekte
+- Rundenlogik
+- Level-Generation
+
+Das ist dein „Knobeln“-Teil.
+
+4) Wichtiger Ablauf für das tägliche Testen
+
+Du willst immer zwischen durch das Fenster öffnen können. Deshalb so machst du es:
+
+1. Kleine Funktion bauen
+2. direkt in `main.py` oder in einer kleinen Datei testen
+3. Spiel ausführen
+4. Fenster prüfen
+5. Fehler mit print/debugger verstehen
+6. erst dann refactoren
+
+Empfohlener Test-Loop:
+- 20–30 Minuten programmieren
+- 5 Minuten Fenster öffnen und prüfen
+- Fehler notieren
+- nächster Schritt
+
+5) Praktische Regeln, damit du wirklich alles verstehst
+
+- Keine 1000 Zeilen in einer Datei
+- Jede Klasse in eigener Datei
+- Jedes System sollte einen klaren Zweck haben
+- Wenn du etwas nicht verstehst, dann nicht sofort kopieren — erst aufteilen:
+  - Wo entsteht die Bewegung?
+  - Wo wird das Event verarbeitet?
+  - Wo wird der Zustand geändert?
+  - Wo wird gerendert?
+
+- Nach jedem Schritt:
+  - Spiel starten
+  - prüfen
+  - kleine Veränderungen machen
+  - wieder testen
+
+6) Was du in diesem Projekt konkret lernen wirst
+
+Du wirst dabei ungefähr diese Dinge selbst nachvollziehen:
+- Pygame-Fenster und Event-Schleife
+- Vektoren und Bewegung
+- Kamera und Perspektive
+- Kollisionen
+- Logik für Gegner und Projektile
+- Zustände und UI
+- Separation of concerns
+- Refactoring
+- Testen im laufenden Spiel
+
+7) Der genaue Bauplan in 3 kleinen Sprints
+
+Sprint 1: Grundbaustein
+- `main.py`
+- `settings.py`
+- Fenster
+- Player
+- Bewegung
+- Kamera
+
+Sprint 2: Spielmechanik
+- Gegner
+- Projektile
+- Kampf
+- Lebenspunkte
+- Kollision
+
+Sprint 3: Struktur und Politur
+- Module aufteilen
+- UI
+- Pause / Menü
+- Refactor
+- sauberes Projekt
+
+8) Der beste Startbefehl für dich
+
+Für PowerShell:
+```powershell
+cd C:\Users\Reichskommandant\Documents\Gambling.worktrees\agents-damp-parakeet
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install pygame numpy PyOpenGL
+python Projekt\main.py
+```
+
+Wenn du später die `main_game.py`-Mechanik als Referenz nimmst, dann baust du in dieser Reihenfolge:
+- Fenster
+- Player
+- Bewegung
+- Kamera
+- Gegner
+- Kampf
+- HUD
+- Refactor
+
+9) Mein Vorschlag für dich
+
+Arbeite in diesem genauen Ablauf:
+
+- Schritt 1: nur `main.py` + `settings.py` + Fenster
+- Schritt 2: Player + Bewegung
+- Schritt 3: Kamera
+- Schritt 4: Gegner
+- Schritt 5: Projektil/Kampf
+- Schritt 6: UI
+- Schritt 7: Struktur aufsplitten
+- Schritt 8: verlängern, testen, verbessern
+
+Wenn du willst, kann ich dir als Nächstes direkt eine zweite Version machen:
+- einen echten „Bauplan pro Datei“
+- also für jede Datei im Projekt genau, was sie machen soll
+- mit klaren Aufgaben und kleinen Testzielen
+
+Dann kannst du wirklich jede Datei nacheinander selbst bauen und immer wissen, warum sie existiert.

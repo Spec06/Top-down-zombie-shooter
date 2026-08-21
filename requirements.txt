@@ -1,9 +1,0 @@
-# Project Python dependencies (pip requirements file)
-# Install with: `py -m pip install -r requirements.txt`
-
-pygame-ce
-PyOpenGL
-numpy
-pytest
-
-#for main_game.py: sys, math, random, ctypes, pygame, OpenGL.GL, OpenGL.GL.shaders
