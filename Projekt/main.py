@@ -12,6 +12,7 @@ import sys, math, random, ctypes
 import numpy as np
 from pygame import mixer
 from OpenGL.GL import *
+from OpenGL.GLU import gluPerspective
 from OpenGL.GL.shaders import compileShader, compileProgram
 from systems.input_system import poll_input
 
@@ -24,31 +25,53 @@ class RenderSystem:
         glViewport(0, 0, width, height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        glOrtho(-WORLD_HALF, WORLD_HALF, WORLD_HALF, -WORLD_HALF, -1, 1)
+        gluPerspective(60.0, width / height, 0.1, 200.0)
         glMatrixMode(GL_MODELVIEW)
+        glEnable(GL_DEPTH_TEST)
 
     def begin_frame(self) -> None:
         glClearColor(0.08, 0.1, 0.12, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
 
     def draw_ground(self) -> None:
         glColor3f(0.18, 0.28, 0.2)
         glBegin(GL_QUADS)
-        glVertex2f(-WORLD_HALF, -WORLD_HALF)
-        glVertex2f(WORLD_HALF, -WORLD_HALF)
-        glVertex2f(WORLD_HALF, WORLD_HALF)
-        glVertex2f(-WORLD_HALF, WORLD_HALF)
+        glVertex3f(-WORLD_HALF, 0.0, -WORLD_HALF)
+        glVertex3f(WORLD_HALF, 0.0, -WORLD_HALF)
+        glVertex3f(WORLD_HALF, 0.0, WORLD_HALF)
+        glVertex3f(-WORLD_HALF, 0.0, WORLD_HALF)
         glEnd()
 
     def draw_player(self, player: Player) -> None:
         radius = settings.PLAYER_RADIUS
+        height = 1.0
         glColor3f(0.9, 0.75, 0.2)
         glBegin(GL_QUADS)
-        glVertex2f(player.x - radius, player.z - radius)
-        glVertex2f(player.x + radius, player.z - radius)
-        glVertex2f(player.x + radius, player.z + radius)
-        glVertex2f(player.x - radius, player.z + radius)
+        glVertex3f(player.x - radius, 0.0, player.z - radius)
+        glVertex3f(player.x + radius, 0.0, player.z - radius)
+        glVertex3f(player.x + radius, height, player.z - radius)
+        glVertex3f(player.x - radius, height, player.z - radius)
+        glVertex3f(player.x - radius, 0.0, player.z + radius)
+        glVertex3f(player.x + radius, 0.0, player.z + radius)
+        glVertex3f(player.x + radius, height, player.z + radius)
+        glVertex3f(player.x - radius, height, player.z + radius)
+        glVertex3f(player.x - radius, 0.0, player.z - radius)
+        glVertex3f(player.x - radius, 0.0, player.z + radius)
+        glVertex3f(player.x - radius, height, player.z + radius)
+        glVertex3f(player.x - radius, height, player.z - radius)
+        glVertex3f(player.x + radius, 0.0, player.z - radius)
+        glVertex3f(player.x + radius, 0.0, player.z + radius)
+        glVertex3f(player.x + radius, height, player.z + radius)
+        glVertex3f(player.x + radius, height, player.z - radius)
+        glVertex3f(player.x - radius, height, player.z - radius)
+        glVertex3f(player.x + radius, height, player.z - radius)
+        glVertex3f(player.x + radius, height, player.z + radius)
+        glVertex3f(player.x - radius, height, player.z + radius)
+        glVertex3f(player.x - radius, 0.0, player.z - radius)
+        glVertex3f(player.x + radius, 0.0, player.z - radius)
+        glVertex3f(player.x + radius, 0.0, player.z + radius)
+        glVertex3f(player.x - radius, 0.0, player.z + radius)
         glEnd()
 
     def end_frame(self) -> None:
