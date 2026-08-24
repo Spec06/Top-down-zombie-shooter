@@ -149,6 +149,8 @@ Commit-Nachricht: "Add requirements and gitignore"
   - main loop: camera.update(player); camera.apply(); draw scene; bewege Player und prüfe, ob Kamera folgt
 - Commit: "Add Camera system with apply()"
 
+...
+
 7) Projekt/systems/render_system.py
 - Zweck: Alle OpenGL-Initialisierung und einfache Draw-Funktionen
 - Signaturen:

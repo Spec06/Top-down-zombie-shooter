@@ -1,6 +1,27 @@
-"""Input system: reads keyboard state and applies velocities to Movement components."""
+"""Sammelt Pygame-Eingaben und verarbeitet Bewegungskomponenten."""
 import math
 import pygame
+
+
+def poll_input() -> dict:
+    """Liest Events, Tastatur und Maus für den aktuellen Frame aus."""
+    events = pygame.event.get()
+    keys = pygame.key.get_pressed()
+    mouse = {
+        "pos": pygame.mouse.get_pos(),
+        "buttons": pygame.mouse.get_pressed(3),
+    }
+    quit_requested = any(
+        event.type == pygame.QUIT
+        or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)
+        for event in events
+    )
+    return {
+        "quit": quit_requested,
+        "keys": keys,
+        "events": events,
+        "mouse": mouse,
+    }
 
 
 class InputSystem:
