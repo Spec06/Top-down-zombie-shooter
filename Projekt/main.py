@@ -7,6 +7,7 @@ import pygame as pg
 import settings
 from entities.player import Player
 from systems.camera_system import Camera
+from systems.render_system import Render_system
 from pygame.locals import DOUBLEBUF, OPENGL
 import sys, math, random, ctypes
 import numpy as np
@@ -20,71 +21,13 @@ SCREEN_W, SCREEN_H = 1200, 800
 FPS = 120
 WORLD_HALF = 50.0
 
-class RenderSystem:
-    def init_opengl(self, width: int, height: int) -> None:
-        glViewport(0, 0, width, height)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(60.0, width / height, 0.1, 200.0)
-        glMatrixMode(GL_MODELVIEW)
-        glEnable(GL_DEPTH_TEST)
-
-    def begin_frame(self) -> None:
-        glClearColor(0.08, 0.1, 0.12, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity()
-
-    def draw_ground(self) -> None:
-        glColor3f(0.18, 0.28, 0.2)
-        glBegin(GL_QUADS)
-        glVertex3f(-WORLD_HALF, 0.0, -WORLD_HALF)
-        glVertex3f(WORLD_HALF, 0.0, -WORLD_HALF)
-        glVertex3f(WORLD_HALF, 0.0, WORLD_HALF)
-        glVertex3f(-WORLD_HALF, 0.0, WORLD_HALF)
-        glEnd()
-
-    def draw_player(self, player: Player) -> None:
-        radius = settings.PLAYER_RADIUS
-        height = 1.0
-        glColor3f(0.9, 0.75, 0.2)
-        glBegin(GL_QUADS)
-        glVertex3f(player.x - radius, 0.0, player.z - radius)
-        glVertex3f(player.x + radius, 0.0, player.z - radius)
-        glVertex3f(player.x + radius, height, player.z - radius)
-        glVertex3f(player.x - radius, height, player.z - radius)
-        glVertex3f(player.x - radius, 0.0, player.z + radius)
-        glVertex3f(player.x + radius, 0.0, player.z + radius)
-        glVertex3f(player.x + radius, height, player.z + radius)
-        glVertex3f(player.x - radius, height, player.z + radius)
-        glVertex3f(player.x - radius, 0.0, player.z - radius)
-        glVertex3f(player.x - radius, 0.0, player.z + radius)
-        glVertex3f(player.x - radius, height, player.z + radius)
-        glVertex3f(player.x - radius, height, player.z - radius)
-        glVertex3f(player.x + radius, 0.0, player.z - radius)
-        glVertex3f(player.x + radius, 0.0, player.z + radius)
-        glVertex3f(player.x + radius, height, player.z + radius)
-        glVertex3f(player.x + radius, height, player.z - radius)
-        glVertex3f(player.x - radius, height, player.z - radius)
-        glVertex3f(player.x + radius, height, player.z - radius)
-        glVertex3f(player.x + radius, height, player.z + radius)
-        glVertex3f(player.x - radius, height, player.z + radius)
-        glVertex3f(player.x - radius, 0.0, player.z - radius)
-        glVertex3f(player.x + radius, 0.0, player.z - radius)
-        glVertex3f(player.x + radius, 0.0, player.z + radius)
-        glVertex3f(player.x - radius, 0.0, player.z + radius)
-        glEnd()
-
-    def end_frame(self) -> None:
-        pg.display.flip()
-
-render_system = RenderSystem()
-
 def main() -> None:
     pg.init()
     pg.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), DOUBLEBUF | OPENGL)
-    render_system.init_opengl(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT)
+    Render_system.init_opengl(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT)
     player = Player(0, 0)
     camera = Camera(player)
+    render_system = Render_system
     clock = pg.time.Clock()
     running = True
     while running:
@@ -97,7 +40,11 @@ def main() -> None:
             render_system.begin_frame()
             camera.apply()
             render_system.draw_ground()
-            render_system.draw_player(player)
+            render_system.draw_cube(
+                (player.x, 0.5, player.z),
+                1.0,
+                (0.2, 0.7, 1.0),
+            )
             render_system.end_frame()
     pg.quit()
 

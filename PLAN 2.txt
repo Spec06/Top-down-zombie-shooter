@@ -149,7 +149,6 @@ Commit-Nachricht: "Add requirements and gitignore"
   - main loop: camera.update(player); camera.apply(); draw scene; bewege Player und prüfe, ob Kamera folgt
 - Commit: "Add Camera system with apply()"
 
-...
 
 7) Projekt/systems/render_system.py
 - Zweck: Alle OpenGL-Initialisierung und einfache Draw-Funktionen
@@ -168,6 +167,8 @@ Commit-Nachricht: "Add requirements and gitignore"
   - main: render_system.init_opengl(); draw_ground(); draw_cube(player.pos,...); end_frame()
   - Erwartung: sichtbarer Boden, sichtbarer Cube
 - Commit: "Add render_system with basic draw primitives"
+
+...
 
 8) Projekt/entities/projectile.py
 - Zweck: Projektil mit Bewegung und Lebenszeit
