@@ -184,7 +184,6 @@ Commit-Nachricht: "Add requirements and gitignore"
   - spawn auf SPACE in main; sichtbar als kleiner cube; bewegt sich
 - Commit: "Add Projectile entity"
 
-...
 
 9) Projekt/components/health.py
 - Zweck: Health-Komponente wiederverwendbar
@@ -200,6 +199,8 @@ Commit-Nachricht: "Add requirements and gitignore"
       h.take_damage(3)
       assert h.current == 7
 - Commit: "Add Health component"
+
+...
 
 10) Projekt/components/attack.py
 - Zweck: Attack-Definition (Melee oder projectile)
