@@ -168,8 +168,6 @@ Commit-Nachricht: "Add requirements and gitignore"
   - Erwartung: sichtbarer Boden, sichtbarer Cube
 - Commit: "Add render_system with basic draw primitives"
 
-...
-
 8) Projekt/entities/projectile.py
 - Zweck: Projektil mit Bewegung und Lebenszeit
 - Signatur:
@@ -185,6 +183,8 @@ Commit-Nachricht: "Add requirements and gitignore"
 - Test:
   - spawn auf SPACE in main; sichtbar als kleiner cube; bewegt sich
 - Commit: "Add Projectile entity"
+
+...
 
 9) Projekt/components/health.py
 - Zweck: Health-Komponente wiederverwendbar
