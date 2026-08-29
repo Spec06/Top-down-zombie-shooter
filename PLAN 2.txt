@@ -200,7 +200,6 @@ Commit-Nachricht: "Add requirements and gitignore"
       assert h.current == 7
 - Commit: "Add Health component"
 
-...
 
 10) Projekt/components/attack.py
 - Zweck: Attack-Definition (Melee oder projectile)
@@ -212,6 +211,9 @@ Commit-Nachricht: "Add requirements and gitignore"
 - Test:
   - Attack.can_attack True nach cooldown vorbei
 - Commit: "Add Attack component"
+
+...
+
 
 11) Projekt/systems/combat_system.py
 - Zweck: Trefferberechnung und Lebensmanagement

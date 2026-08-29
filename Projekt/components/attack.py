@@ -2,7 +2,7 @@
 import time
 
 class Attack:
-    def __init__(self, damage=1, range=32, cooldown=0.5, attack_type="melee", knockback=0):
+    def __init__(self, damage=1, range=32, cooldown=0.5, attack_type="projectile", knockback=0):
         self.damage = damage
         self.range = range
         self.cooldown = cooldown
@@ -13,5 +13,5 @@ class Attack:
     def can_attack(self):
         return (time.time() - self._last_attack_time) >= self.cooldown
 
-    def record_attack(self):
+    def trigger(self):
         self._last_attack_time = time.time()
