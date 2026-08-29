@@ -2,7 +2,7 @@
 import time
 
 class Attack:
-    def __init__(self, damage=1, range=32, cooldown=0.5, attack_type="projectile", knockback=0):
+    def __init__(self, damage, range, cooldown, attack_type, knockback):
         self.damage = damage
         self.range = range
         self.cooldown = cooldown
