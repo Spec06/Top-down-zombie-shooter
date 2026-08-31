@@ -5,10 +5,13 @@
 """
 import pygame as pg
 import settings
+from components.health import Health
 from entities.player import Player
 from entities.projectile import Projectile
+from entities.enemy import Enemy
 from systems.camera_system import Camera
 from systems.render_system import Render_system
+from systems.combat_system import CombatSystem
 from pygame.locals import DOUBLEBUF, OPENGL
 import sys, math, random, ctypes
 import numpy as np
@@ -28,7 +31,10 @@ def main() -> None:
     Render_system.init_opengl(settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT)
     player = Player(0, 0)
     camera = Camera(player)
+    enemy = Enemy(5, 5, 0.5)
+    enemy.add_component('health', Health(max_hp=10))
     render_system = Render_system
+    combat_system = CombatSystem(world=[enemy])
     projectiles: list[Projectile] = []
     clock = pg.time.Clock()
     running = True
@@ -59,7 +65,14 @@ def main() -> None:
             )
             for projectile in projectiles:
                 render_system.draw_cube(projectile.position, 0.2, (1.0, 0.8, 0.1))
+            if not enemy.is_dead():
+                render_system.draw_cube(
+                    (enemy.x, 0.5, enemy.z),
+                    1.0,
+                    (1.2, 1.7, 1.0),
+                )
             render_system.end_frame()
+            projectiles = combat_system.handle_projectiles(projectiles, [enemy])
     pg.quit()
 
 if __name__ == "__main__":

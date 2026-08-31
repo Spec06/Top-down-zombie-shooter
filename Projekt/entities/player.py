@@ -5,12 +5,28 @@ import math
 import pygame as pg
 
 import settings
+from entities.entity import Entity
 
 
-class Player:
-    def __init__(self, x: float = 0.0, z: float = 0.0) -> None:
-        self.x = float(x)
-        self.z = float(z)
+class Player(Entity):
+    def __init__(self, x: float = 0.0, z: float = 0.0, radius: float = 0.5) -> None:
+        super().__init__(position=(float(x), 0.5, float(z)), radius=radius)
+
+    @property
+    def x(self) -> float:
+        return float(self.position[0])
+
+    @x.setter
+    def x(self, value):
+        self.position[0] = float(value)
+
+    @property
+    def z(self) -> float:
+        return float(self.position[2])
+
+    @z.setter
+    def z(self, value):
+        self.position[2] = float(value)
 
     def update(self, dt: float, input_state: dict) -> None:
         keys = input_state["keys"]

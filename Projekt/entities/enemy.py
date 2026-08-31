@@ -1,15 +1,29 @@
 """Enemy entity scaffold."""
 
-import numpy as np
+from entities.entity import Entity
 
 
-class Enemy:
-    def __init__(self, x=0.0, z=0.0):
-        # Position as 3D numpy array for compatibility with the 3D main loop
-        # Use a fixed Y (height) so enemy sits on the ground similar to Player
-        self.position = np.array([float(x), 0.5, float(z)], dtype=float)
+class Enemy(Entity):
+    def __init__(self, x=0.0, z=0.0, radius: float = 0.5):
+        super().__init__(position=(float(x), 0.5, float(z)), radius=radius)
         self.components = {}
         self.alive = True
+
+    @property
+    def x(self):
+        return float(self.position[0])
+
+    @x.setter
+    def x(self, value):
+        self.position[0] = float(value)
+
+    @property
+    def z(self):
+        return float(self.position[2])
+
+    @z.setter
+    def z(self, value):
+        self.position[2] = float(value)
 
     def add_component(self, name, comp):
         self.components[name] = comp

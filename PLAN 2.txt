@@ -200,7 +200,6 @@ Commit-Nachricht: "Add requirements and gitignore"
       assert h.current == 7
 - Commit: "Add Health component"
 
-
 10) Projekt/components/attack.py
 - Zweck: Attack-Definition (Melee oder projectile)
 - Signatur:
@@ -211,9 +210,6 @@ Commit-Nachricht: "Add requirements and gitignore"
 - Test:
   - Attack.can_attack True nach cooldown vorbei
 - Commit: "Add Attack component"
-
-...
-
 
 11) Projekt/systems/combat_system.py
 - Zweck: Trefferberechnung und Lebensmanagement
@@ -228,6 +224,9 @@ Commit-Nachricht: "Add requirements and gitignore"
 - Tests:
   - pytest: create dummy target with Health and position, call perform_melee -> hp reduced
 - Commit: "Add CombatSystem with melee/projectile handling"
+
+...
+
 
 12) Projekt/entities/enemy.py
 - Zweck: enemy mit einfacher AI (zueinander bewegen)
