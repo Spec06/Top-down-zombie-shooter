@@ -225,8 +225,6 @@ Commit-Nachricht: "Add requirements and gitignore"
   - pytest: create dummy target with Health and position, call perform_melee -> hp reduced
 - Commit: "Add CombatSystem with melee/projectile handling"
 
-...
-
 
 12) Projekt/entities/enemy.py
 - Zweck: enemy mit einfacher AI (zueinander bewegen)
@@ -241,6 +239,8 @@ Commit-Nachricht: "Add requirements and gitignore"
 - Test:
   - spawn in main via SpawnManager -> enemy bewegen sich
 - Commit: "Add Enemy entity"
+
+...
 
 13) Projekt/scripts/spawn_manager.py
 - Zweck: Spawn-Funktionen

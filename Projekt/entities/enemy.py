@@ -1,7 +1,8 @@
 """Enemy entity scaffold."""
 
 from entities.entity import Entity
-
+from entities.player import Player
+import settings
 
 class Enemy(Entity):
     def __init__(self, x=0.0, z=0.0, radius: float = 0.5):
@@ -24,6 +25,12 @@ class Enemy(Entity):
     @z.setter
     def z(self, value):
         self.position[2] = float(value)
+
+    def update(self, dt: float, player: Player) -> None:
+        distance_to_player = player.position - self.position
+        if distance_to_player > 0.00:
+            self.x += distance_to_player * settings.ENEMY_SPEED * dt
+            self.z += distance_to_player * settings.ENEMY_SPEED * dt
 
     def add_component(self, name, comp):
         self.components[name] = comp

@@ -5,6 +5,7 @@ SCREEN_HEIGHT: int = 720
 FPS: int = 60
 PLAYER_SPEED: float = 5.0
 PLAYER_RADIUS: float = 0.3
+ENEMY_SPEED: float = 3.0
 DEBUG_DRAW_HITBOX: bool = False
 CAMERA_DISTANCE: float = 8.0
 CAMERA_PITCH: float = 30.0

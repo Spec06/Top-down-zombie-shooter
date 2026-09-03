@@ -71,6 +71,7 @@ def main() -> None:
                     1.0,
                     (1.2, 1.7, 1.0),
                 )
+                enemy.update()
             render_system.end_frame()
             projectiles = combat_system.handle_projectiles(projectiles, [enemy])
     pg.quit()
