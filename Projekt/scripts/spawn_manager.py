@@ -1,121 +1,83 @@
 """Spawn manager.
 
-Provides a small utility to determine a player spawn from a TMX (Tiled) file
-without requiring extra libraries. Falls back to sensible defaults.
+Provides simple spawn helpers for the top-down zombie shooter.
 """
 from __future__ import annotations
 
-import os
-import xml.etree.ElementTree as ET
-from typing import Optional, Tuple, Type, List
-import random
 import math
+import os
+import random
+import xml.etree.ElementTree as ET
+from typing import List, Optional, Tuple, Type
 
-# Import components used for spawned entities
 try:
     from components.health import Health
-except Exception:
-    # if running as script from root, try the other import path
+except ImportError:  # pragma: no cover
     from Projekt.components.health import Health
 
 
 class SpawnManager:
-    def __init__(self):
-        self.spawn_points = []
+    """Create enemy or player instances at map-relative coordinates."""
 
-    def get_player_spawn(self, tmx_path: str) -> Optional[Tuple[float, float]]:
-        """Try to read a `player_spawn` object from the TMX file.
+    def __init__(self, fallback_center: Optional[Tuple[float, float]] = None) -> None:
+        self.fallback_center = fallback_center or (0.0, 0.0)
 
-        Returns (x, y) in pixels, or None if not found / file missing.
-        Uses ElementTree so no external dependency is required.
-        """
+    @staticmethod
+    def _read_tmx_spawn(tmx_path: str) -> Optional[Tuple[float, float]]:
         if not tmx_path or not os.path.isfile(tmx_path):
             return None
-        try:
-            tree = ET.parse(tmx_path)
-            root = tree.getroot()
 
-            # Search for any <object name="player_spawn" .../>
+        try:
+            root = ET.parse(tmx_path).getroot()
             for obj in root.findall('.//object'):
                 if obj.get('name') == 'player_spawn':
-                    x = float(obj.get('x', '0'))
-                    y = float(obj.get('y', '0'))
-                    return (x, y)
+                    return float(obj.get('x', 0)), float(obj.get('y', 0))
 
-            # If no object found, try to compute center from map attributes
-            width = int(root.get('width') or 0)
-            height = int(root.get('height') or 0)
-            tilewidth = int(root.get('tilewidth') or 0)
-            tileheight = int(root.get('tileheight') or 0)
-            if width and height and tilewidth and tileheight:
-                return (width * tilewidth / 2.0, height * tileheight / 2.0)
+            width = int(root.get('width', 0) or 0)
+            height = int(root.get('height', 0) or 0)
+            tile_width = int(root.get('tilewidth', 0) or 0)
+            tile_height = int(root.get('tileheight', 0) or 0)
+            if width and height and tile_width and tile_height:
+                return width * tile_width / 2.0, height * tile_height / 2.0
         except Exception:
             return None
         return None
 
     def spawn(self, entity_cls: Type, point: Optional[Tuple[float, float]] = None, tmx_path: Optional[str] = None):
-        """Instantiate `entity_cls` at `point`. If `point` is None, try TMX then fallbacks.
-
-        Example:
-            sm = SpawnManager()
-            player = sm.spawn(Player, tmx_path='Projekt/maps/level_1.tmx')
-        """
         if point is None:
-            point = None
-            if tmx_path:
-                point = self.get_player_spawn(tmx_path)
-            if point is None:
-                # fallback to settings center if available
-                try:
-                    from settings import SCREEN_WIDTH, SCREEN_HEIGHT
-
-                    point = (SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0)
-                except Exception:
-                    point = (0.0, 0.0)
-
-        # Many entity constructors in this project expect (x, z) like Player(x, z)
-        # so pass two arguments. If entity_cls accepts different signature it
-        # should handle missing z internally.
+            point = self._read_tmx_spawn(tmx_path) if tmx_path else None
+        if point is None:
+            point = self.fallback_center
         return entity_cls(point[0], point[1])
 
-    def spawn_enemies(self, entity_cls: Type, count: int = 3, center: Optional[Tuple[float, float]] = None,
-                      radius: float = 5.0, tmx_path: Optional[str] = None, hp: int = 10) -> List:
-        """Spawn multiple enemies around `center` (or TMX player spawn / fallback).
-
-        - `entity_cls` is the enemy class to instantiate (expects x,z)
-        - `count` number of enemies
-        - `center` tuple (x, y) in map coordinates; note: TMX y maps to z in 3D world
-        - `radius` spawn radius around center
-        - `hp` initial health for each enemy
-        Returns a list of created enemy instances.
-        """
+    def spawn_enemies(
+        self,
+        entity_cls: Type,
+        count: int = 3,
+        center: Optional[Tuple[float, float]] = None,
+        radius: float = 5.0,
+        tmx_path: Optional[str] = None,
+        hp: int = 10,
+    ) -> List:
         if center is None:
-            center = self.get_player_spawn(tmx_path) or (0.0, 0.0)
+            center = self._read_tmx_spawn(tmx_path) if tmx_path else self.fallback_center
 
-        enemies = []
         cx, cy = float(center[0]), float(center[1])
-        for i in range(count):
+        enemies: List = []
+
+        for _ in range(max(0, count)):
             angle = random.random() * math.tau
-            r = random.random() * radius
-            sx = cx + math.cos(angle) * r
-            sy = cy + math.sin(angle) * r
-            e = self.spawn(entity_cls, point=(sx, sy), tmx_path=tmx_path)
-            # attach Health component if available
+            distance = random.random() * max(0.0, radius)
+            x = cx + math.cos(angle) * distance
+            z = cy + math.sin(angle) * distance
+            enemy = entity_cls(x, z)
+
             try:
-                e.add_component('health', Health(max_hp=hp))
-            except Exception:
+                enemy.add_component('health', Health(max_hp=hp))
+            except AttributeError:
                 pass
-            # attach Movement component if available (for knockback)
-            try:
-                from components.movement import Movement
-                e.add_component('movement', Movement(speed=2.5))
-            except Exception:
-                try:
-                    from Projekt.components.movement import Movement
-                    e.add_component('movement', Movement(speed=2.5))
-                except Exception:
-                    pass
-            enemies.append(e)
+
+            enemies.append(enemy)
 
         return enemies
 
