@@ -27,6 +27,7 @@ class Camera:
     def apply(self) -> None:
         camera_x, camera_y, camera_z = self.camera_position
         target_y = getattr(self.target_entity, "y", 0.0)
+        up_vector = (0.0, 0.0, -1.0) if self.pitch > math.radians(80.0) else (0.0, 1.0, 0.0)
         gluLookAt(
             camera_x,
             camera_y,
@@ -34,9 +35,7 @@ class Camera:
             self.target_entity.x,
             target_y,
             self.target_entity.z,
-            0.0,
-            1.0,
-            0.0,
+            *up_vector,
         )
 
     def world_from_screen(self, mouse_pos, width: int, height: int):

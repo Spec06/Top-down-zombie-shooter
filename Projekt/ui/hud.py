@@ -4,7 +4,7 @@ from __future__ import annotations
 
 try:
     import pygame
-    from OpenGL.GL import GL_LINES, GL_QUADS, GL_RGB, GL_UNSIGNED_BYTE, glBegin, glColor3f, glEnd, glLineWidth, glVertex2f, glRasterPos2f, glDrawPixels
+    from OpenGL.GL import GL_LINES, GL_QUADS, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_LINEAR, glBegin, glBindTexture, glColor3f, glDeleteTextures, glDisable, glEnable, glEnd, glGenTextures, glLineWidth, glTexCoord2f, glTexImage2D, glTexParameteri, glVertex2f
 except Exception:  # pragma: no cover
     pygame = None
 
@@ -82,8 +82,26 @@ class HUD:
             True,
             (235, 235, 235),
         )
-        glRasterPos2f(20, 92)
-        glDrawPixels(hint.get_width(), hint.get_height(), GL_RGB, GL_UNSIGNED_BYTE, pygame.image.tostring(hint, "RGB", True))
+        texture = glGenTextures(1)
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, texture)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, hint.get_width(), hint.get_height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pygame.image.tostring(hint, "RGBA", False))
+        glColor3f(1.0, 1.0, 1.0)
+        glBegin(GL_QUADS)
+        glTexCoord2f(0.0, 0.0)
+        glVertex2f(20, 92)
+        glTexCoord2f(1.0, 0.0)
+        glVertex2f(20 + hint.get_width(), 92)
+        glTexCoord2f(1.0, 1.0)
+        glVertex2f(20 + hint.get_width(), 92 + hint.get_height())
+        glTexCoord2f(0.0, 1.0)
+        glVertex2f(20, 92 + hint.get_height())
+        glEnd()
+        glBindTexture(GL_TEXTURE_2D, 0)
+        glDisable(GL_TEXTURE_2D)
+        glDeleteTextures([texture])
         glPop()
         glMatrixMode(GL_PROJECTION)
         glPop()

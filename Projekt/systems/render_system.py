@@ -14,6 +14,7 @@ from OpenGL.GL import (
     GL_QUADS,
     GL_LINES,
     GL_LINE_LOOP,
+    GL_TRIANGLE_FAN,
     glBegin,
     glClear,
     glClearColor,
@@ -84,8 +85,8 @@ class Render_system:
         """Zeichnet eine flache Bodenfläche auf Höhe y=0."""
         half_size = size / 2.0
 
-        glColor3f(0.25, 0.30, 0.25)
         glBegin(GL_QUADS)
+        glColor3f(0.12, 0.16, 0.14)
         glVertex3f(-half_size, 0.0, -half_size)
         glVertex3f(half_size, 0.0, -half_size)
         glVertex3f(half_size, 0.0, half_size)
@@ -124,6 +125,13 @@ class Render_system:
             glVertex3f(radius * math.cos(a2), 0.0, radius * math.sin(a2))
             glVertex3f(radius * math.cos(a2), height, radius * math.sin(a2))
             glVertex3f(radius * math.cos(a1), height, radius * math.sin(a1))
+        glEnd()
+        glColor3f(min(1.0, color[0] * 1.25), min(1.0, color[1] * 1.25), min(1.0, color[2] * 1.25))
+        glBegin(GL_TRIANGLE_FAN)
+        glVertex3f(0.0, height, 0.0)
+        for index in range(segments + 1):
+            angle = 6.283185 * index / segments
+            glVertex3f(radius * math.cos(angle), height, radius * math.sin(angle))
         glEnd()
         glPopMatrix()
 
@@ -181,4 +189,17 @@ class Render_system:
         glVertex2f(x + size, y)
         glVertex2f(x, y - size)
         glVertex2f(x, y + size)
+        glEnd()
+
+        glColor3f(0.22, 0.28, 0.23)
+        glLineWidth(2.0)
+        glBegin(GL_LINES)
+        glVertex3f(-half_size, 0.03, -half_size)
+        glVertex3f(half_size, 0.03, -half_size)
+        glVertex3f(half_size, 0.03, -half_size)
+        glVertex3f(half_size, 0.03, half_size)
+        glVertex3f(half_size, 0.03, half_size)
+        glVertex3f(-half_size, 0.03, half_size)
+        glVertex3f(-half_size, 0.03, half_size)
+        glVertex3f(-half_size, 0.03, -half_size)
         glEnd()

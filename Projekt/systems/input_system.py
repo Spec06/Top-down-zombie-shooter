@@ -13,7 +13,6 @@ def poll_input() -> dict:
     }
     quit_requested = any(
         event.type == pg.QUIT
-        or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE)
         for event in events
     )
     return {
