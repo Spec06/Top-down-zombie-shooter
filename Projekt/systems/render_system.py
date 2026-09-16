@@ -1,15 +1,19 @@
 """OpenGL-Initialisierung und einfache Zeichenfunktionen."""
 
+import math
 from collections.abc import Sequence
 
 import pygame
 from OpenGL.GL import (
+    GL_BLEND,
     GL_COLOR_BUFFER_BIT,
     GL_DEPTH_BUFFER_BIT,
     GL_DEPTH_TEST,
     GL_MODELVIEW,
     GL_PROJECTION,
     GL_QUADS,
+    GL_LINES,
+    GL_LINE_LOOP,
     glBegin,
     glClear,
     glClearColor,
@@ -22,20 +26,44 @@ from OpenGL.GL import (
     glPushMatrix,
     glTranslatef,
     glVertex3f,
+    glLineWidth,
+    glViewport,
+    glOrtho,
 )
 from OpenGL.GLU import gluPerspective
 
+
+VERTEX_SHADER = """#version 120
+void main() { gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; }
+"""
+FRAGMENT_SHADER = """#version 120
+void main() { gl_FragColor = gl_Color; }
+"""
+
 class Render_system:
+    shader_program = None
+
     def init_opengl(width: int, height: int) -> None:
         """Richtet Kamera, Tiefentest und Hintergrundfarbe ein."""
         pygame.display.set_caption("Gambling")
+        glViewport(0, 0, width, height)
 
-        glClearColor(0.08, 0.10, 0.14, 1.0)
+        glClearColor(0.05, 0.05, 0.08, 1.0)
         glEnable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        try:
+            from OpenGL.GL.shaders import compileProgram, compileShader
+            from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
+            Render_system.shader_program = compileProgram(
+                compileShader(VERTEX_SHADER, GL_VERTEX_SHADER),
+                compileShader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER),
+            )
+        except Exception:
+            Render_system.shader_program = None
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(60.0, width / height, 0.1, 100.0)
+        glOrtho(-12.0, 12.0, -12.0 * height / width, 12.0 * height / width, -30.0, 30.0)
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -63,6 +91,41 @@ class Render_system:
         glVertex3f(half_size, 0.0, half_size)
         glVertex3f(-half_size, 0.0, half_size)
         glEnd()
+
+        glColor3f(0.30, 0.30, 0.30)
+        glLineWidth(1.0)
+        glBegin(GL_LINES)
+        for index in range(-5, 6):
+            coordinate = index * 3.0
+            glVertex3f(coordinate, 0.01, -half_size)
+            glVertex3f(coordinate, 0.01, half_size)
+            glVertex3f(-half_size, 0.01, coordinate)
+            glVertex3f(half_size, 0.01, coordinate)
+        glEnd()
+
+
+    def draw_cylinder(
+        pos: Sequence[float],
+        radius: float,
+        height: float,
+        color: Sequence[float],
+    ) -> None:
+        """Draws a lit-looking low-poly body using immediate-mode geometry."""
+        x, y, z = pos
+        segments = 12
+        glPushMatrix()
+        glTranslatef(x, y, z)
+        glColor3f(*color)
+        glBegin(GL_QUADS)
+        for index in range(segments):
+            a1 = 6.283185 * index / segments
+            a2 = 6.283185 * (index + 1) / segments
+            glVertex3f(radius * math.cos(a1), 0.0, radius * math.sin(a1))
+            glVertex3f(radius * math.cos(a2), 0.0, radius * math.sin(a2))
+            glVertex3f(radius * math.cos(a2), height, radius * math.sin(a2))
+            glVertex3f(radius * math.cos(a1), height, radius * math.sin(a1))
+        glEnd()
+        glPopMatrix()
 
 
     def draw_cube(
@@ -106,3 +169,16 @@ class Render_system:
         glEnd()
 
         glPopMatrix()
+
+    @staticmethod
+    def draw_crosshair(x: float, y: float, size: float = 10.0) -> None:
+        """Draw a screen-space crosshair in normalized pixel coordinates."""
+        from OpenGL.GL import glColor3f, glBegin, glEnd, glVertex2f
+
+        glColor3f(1.0, 0.85, 0.2)
+        glBegin(GL_LINES)
+        glVertex2f(x - size, y)
+        glVertex2f(x + size, y)
+        glVertex2f(x, y - size)
+        glVertex2f(x, y + size)
+        glEnd()

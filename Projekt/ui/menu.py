@@ -39,16 +39,22 @@ class Menu:
         """Handle a simple input_state dict and return a mode."""
         keys = input_state.get('keys', {}) if isinstance(input_state, dict) else {}
 
-        if hasattr(keys, 'get'):
-            if keys.get(pygame.K_UP) if pygame is not None else False:
+        def pressed(key: int) -> bool:
+            try:
+                return bool(keys[key])
+            except (IndexError, KeyError, TypeError):
+                return bool(keys.get(key, False)) if hasattr(keys, 'get') else False
+
+        if pygame is not None:
+            if pressed(pygame.K_UP):
                 self.move_up()
                 return 'none'
-            if keys.get(pygame.K_DOWN) if pygame is not None else False:
+            if pressed(pygame.K_DOWN):
                 self.move_down()
                 return 'none'
-            if keys.get(pygame.K_RETURN) if pygame is not None else False:
+            if pressed(pygame.K_RETURN) or pressed(pygame.K_SPACE):
                 return 'start'
-            if keys.get(pygame.K_ESCAPE) if pygame is not None else False:
+            if pressed(pygame.K_ESCAPE):
                 return 'quit'
 
         return 'none'

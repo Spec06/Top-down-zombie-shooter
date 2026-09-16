@@ -1,6 +1,12 @@
-import settings
+try:
+    import settings
+except ModuleNotFoundError:  # package import
+    from Projekt import settings
 import math
-from entities.player import Player
+try:
+    from entities.player import Player
+except ModuleNotFoundError:  # package import
+    from Projekt.entities.player import Player
 from OpenGL.GLU import gluLookAt
 
 class Camera:
@@ -32,3 +38,11 @@ class Camera:
             1.0,
             0.0,
         )
+
+    def world_from_screen(self, mouse_pos, width: int, height: int):
+        """Map the screen cursor to the ground plane for top-down aiming."""
+        world_width = 24.0
+        world_height = world_width * height / max(1, width)
+        x = self.target_entity.x + (mouse_pos[0] / width - 0.5) * world_width
+        z = self.target_entity.z + (mouse_pos[1] / height - 0.5) * world_height
+        return x, z

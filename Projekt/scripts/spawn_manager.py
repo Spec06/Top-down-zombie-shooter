@@ -58,6 +58,7 @@ class SpawnManager:
         radius: float = 5.0,
         tmx_path: Optional[str] = None,
         hp: int = 10,
+        zombie_types=None,
     ) -> List:
         if center is None:
             center = self._read_tmx_spawn(tmx_path) if tmx_path else self.fallback_center
@@ -70,10 +71,11 @@ class SpawnManager:
             distance = random.random() * max(0.0, radius)
             x = cx + math.cos(angle) * distance
             z = cy + math.sin(angle) * distance
-            enemy = entity_cls(x, z)
+            zombie_type = random.choice(zombie_types) if zombie_types else "normal"
+            enemy = entity_cls(x, z, zombie_type=zombie_type)
 
             try:
-                enemy.add_component('health', Health(max_hp=hp))
+                enemy.add_component('health', Health(max_hp=enemy.stats["hp"] if zombie_types else hp))
             except AttributeError:
                 pass
 
