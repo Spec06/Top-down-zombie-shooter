@@ -1,4 +1,3 @@
-"""Base entity logic shared by all objects in the game world."""
 
 from __future__ import annotations
 

@@ -1,8 +1,0 @@
-<!-- Placeholder TMX for level_1 -->
-<map version="1.0" tiledversion="1.9.0" orientation="orthogonal">
-  <properties>
-    <property name="name" value="level_1"/>
-  </properties>
-  <objectgroup name="objects">
-    <object id="1" name="player_spawn" type="spawn_point" x="64" y="64" width="32" height="32"/>
-</map>

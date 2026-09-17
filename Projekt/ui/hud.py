@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import numpy as np
+
+from Projekt.components.weapon import WEAPON_CONFIG
+
 try:
     import pygame
     from OpenGL.GL import GL_LINES, GL_QUADS, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, GL_LINEAR, glBegin, glBindTexture, glColor3f, glDeleteTextures, glDisable, glEnable, glEnd, glGenTextures, glLineWidth, glTexCoord2f, glTexImage2D, glTexParameteri, glVertex2f
@@ -107,3 +111,78 @@ class HUD:
         glPop()
         glMatrixMode(GL_MODELVIEW)
         glEnable(GL_DEPTH_TEST)
+
+
+class GameHUD:
+    """HUD used by the OpenGL game renderer."""
+
+    def draw(self, renderer, text_renderer, game) -> None:
+        renderer.begin_hud()
+        player = game.player
+        x, y, width, height = 20, game.screen_height - 50, 200, 20
+        renderer.draw_hud_quad(x, y, width, height, (0.2, 0, 0))
+        renderer.draw_hud_quad(x, y, width * player.hp / player.MAX_HP, height, (0.8, 0.1, 0.1))
+        renderer.draw_text(text_renderer, "HP", x + 4, y, "small", (255, 255, 255))
+        renderer.draw_text(text_renderer, f"{int(player.hp)}/{player.MAX_HP}", x + width - 75, y, "small", (255, 255, 255))
+
+        stamina_y = y - 25
+        renderer.draw_hud_quad(x, stamina_y, width, height, (0.2, 0.2, 0))
+        renderer.draw_hud_quad(x, stamina_y, width * player.stamina / player.MAX_STAMINA, height, (0.9, 0.8, 0.1))
+        renderer.draw_text(text_renderer, "STA", x + 5, stamina_y, "small", (255, 255, 255))
+
+        weapon_y = stamina_y - 60
+        weapon_key = player.current_weapon_key
+        if weapon_key:
+            weapon = WEAPON_CONFIG[weapon_key]
+            renderer.draw_text(text_renderer, weapon["name"], x, weapon_y, "med", (255, 255, 255))
+            renderer.draw_text(text_renderer, f"{player.magazine[weapon_key]} / {player.ammo[weapon_key]}", x, weapon_y + 28, "small", (255, 220, 100))
+            if player.reloading:
+                renderer.draw_text(text_renderer, "RELOADING...", x + 75, weapon_y, "med", (255, 100, 100))
+        renderer.draw_text(text_renderer, f"Medkits: {player.consumables} (F)", x, weapon_y - 25, "small", (255, 100, 100))
+        renderer.draw_text(text_renderer, f"Wave: {game.wave_mgr.wave}", 20, 20, "med", (255, 255, 255))
+        renderer.draw_text(text_renderer, f"Zombies: {len(game.zombies)}", 20, 50, "small", (255, 100, 100))
+        renderer.draw_text(text_renderer, f"Score: {game.score}", 20, 75, "small", (255, 220, 100))
+        renderer.draw_text(text_renderer, f"Kills: {game.total_kills}", 20, 100, "small", (200, 200, 200))
+
+        for index, weapon_key in enumerate(player.weapons):
+            slot_x, slot_y = game.screen_width - 200 + index * 60, 20
+            color = (0.3, 0.3, 0.3) if weapon_key is None else WEAPON_CONFIG[weapon_key]["color"]
+            renderer.draw_hud_quad(slot_x, slot_y, 50, 50, (0.1, 0.1, 0.1))
+            renderer.draw_hud_quad(slot_x + 4, slot_y + 4, 42, 42, color)
+            if index == player.current_weapon:
+                renderer.draw_hud_quad(slot_x - 2, slot_y - 2, 54, 54, (1, 1, 1), alpha=0.3)
+            renderer.draw_text(text_renderer, str(index + 1), slot_x + 5, slot_y + 55, "small", (255, 255, 255))
+            if weapon_key:
+                renderer.draw_text(text_renderer, WEAPON_CONFIG[weapon_key]["name"][:3], slot_x + 5, slot_y + 5, "tiny", (255, 255, 255))
+
+        if game.wave_mgr.between_waves:
+            countdown = max(0, game.wave_mgr.countdown)
+            label = f"Next Wave in {countdown:.1f}s" if game.wave_mgr.wave else f"First Wave in {countdown:.1f}s"
+        else:
+            label = f"Wave {game.wave_mgr.wave} - {len(game.zombies)} zombies left"
+        renderer.draw_text(text_renderer, label, game.screen_width // 2, game.screen_height - 60, "med", (255, 255, 255), center=True)
+
+        view_projection = np.dot(game.proj_matrix, game.view_matrix)
+        for feedback in game.feedback_system:
+            world = np.array([*feedback["pos"], 1], dtype=np.float32)
+            clip = view_projection.dot(world)
+            if clip[3] == 0:
+                continue
+            normalized = clip[:3] / clip[3]
+            screen_x = (normalized[0] + 1) * 0.5 * game.screen_width
+            screen_y = (1 - normalized[1]) * 0.5 * game.screen_height
+            renderer.draw_text(
+                text_renderer,
+                feedback["text"],
+                int(screen_x),
+                int(screen_y),
+                "small",
+                feedback["color_rgb"],
+                alpha=min(1.0, feedback["life"] * 2),
+                center=True,
+            )
+
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        renderer.draw_hud_quad(mouse_x - 1, mouse_y - 8, 2, 16, (1, 1, 1))
+        renderer.draw_hud_quad(mouse_x - 8, mouse_y - 1, 16, 2, (1, 1, 1))
+        renderer.end_hud()

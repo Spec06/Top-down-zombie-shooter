@@ -11,13 +11,42 @@ import xml.etree.ElementTree as ET
 from typing import List, Optional, Tuple, Type
 
 try:
-    from components.health import Health
-except ImportError:  # pragma: no cover
     from Projekt.components.health import Health
+except ImportError:  # pragma: no cover - legacy local layout
+    from components.health import Health
 
 
 class SpawnManager:
     """Create enemy or player instances at map-relative coordinates."""
+
+    @staticmethod
+    def _create_entity(entity_cls: Type, x: float, z: float, zombie_type: str = "normal"):
+        """Instantiate entities across different constructor signatures."""
+        try:
+            return entity_cls(x, z, zombie_type=zombie_type)
+        except TypeError:
+            try:
+                return entity_cls(x, z, ztype=zombie_type)
+            except TypeError:
+                return entity_cls(x, z)
+
+    def spawn_enemy(
+        self,
+        entity_cls: Type,
+        x: float,
+        z: float,
+        zombie_type: str = "normal",
+        max_health: Optional[float] = None,
+    ):
+        """Create one enemy and attach its health component when supported."""
+        enemy = self._create_entity(entity_cls, x, z, zombie_type)
+        if hasattr(enemy, "add_component"):
+            maximum_health = max_health or getattr(enemy, "max_hp", None)
+            if maximum_health is None:
+                stats = getattr(enemy, "stats", {})
+                maximum_health = stats.get("hp", 10)
+            enemy.add_component("health", Health(max_hp=maximum_health))
+        return enemy
 
     def __init__(self, fallback_center: Optional[Tuple[float, float]] = None) -> None:
         self.fallback_center = fallback_center or (0.0, 0.0)
@@ -72,14 +101,29 @@ class SpawnManager:
             x = cx + math.cos(angle) * distance
             z = cy + math.sin(angle) * distance
             zombie_type = random.choice(zombie_types) if zombie_types else "normal"
-            enemy = entity_cls(x, z, zombie_type=zombie_type)
-
-            try:
-                enemy.add_component('health', Health(max_hp=enemy.stats["hp"] if zombie_types else hp))
-            except AttributeError:
-                pass
+            enemy = self.spawn_enemy(
+                entity_cls,
+                x,
+                z,
+                zombie_type,
+                max_health=hp if zombie_types is None else None,
+            )
 
             enemies.append(enemy)
 
+        return enemies
+
+    def spawn_wave(self, entity_cls: Type, player_pos, wave: int = 1, radius_min: float = 22.0, radius_max: float = 30.0, zombie_types=None):
+        """Compatibility helper matching the legacy wave spawning pattern."""
+        px, _, pz = player_pos
+        enemies = []
+        while len(enemies) < max(1, wave):
+            angle = random.uniform(0, math.tau)
+            dist = random.uniform(radius_min, radius_max)
+            x = px + math.cos(angle) * dist
+            z = pz + math.sin(angle) * dist
+            zombie_type = random.choice(zombie_types) if zombie_types else "normal"
+            enemy = self.spawn_enemy(entity_cls, x, z, zombie_type)
+            enemies.append(enemy)
         return enemies
 

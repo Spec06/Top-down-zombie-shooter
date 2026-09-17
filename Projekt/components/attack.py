@@ -1,4 +1,3 @@
-"""Attack component: stores attack parameters and cooldown tracking."""
 import time
 
 

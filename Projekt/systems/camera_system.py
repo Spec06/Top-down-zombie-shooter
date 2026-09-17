@@ -1,12 +1,12 @@
 try:
-    import settings
-except ModuleNotFoundError:  # package import
     from Projekt import settings
+except ModuleNotFoundError:  # pragma: no cover - legacy local layout
+    import settings
 import math
 try:
-    from entities.player import Player
-except ModuleNotFoundError:  # package import
     from Projekt.entities.player import Player
+except ModuleNotFoundError:  # pragma: no cover - legacy local layout
+    from entities.player import Player
 from OpenGL.GLU import gluLookAt
 
 class Camera:

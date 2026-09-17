@@ -1,4 +1,3 @@
-"""Menu implementation with keyboard navigation."""
 
 from __future__ import annotations
 

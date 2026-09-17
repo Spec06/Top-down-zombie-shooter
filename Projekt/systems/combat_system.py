@@ -1,5 +1,18 @@
-"""Combat system: applies attacks to targets using components."""
+
 import math
+
+
+def is_position_blocked(x, z, radius, obstacles, walls):
+    """Return whether a circular actor overlaps an obstacle or boundary wall."""
+    for obstacle in obstacles:
+        if abs(x - obstacle["x"]) < radius + obstacle["w"] / 2:
+            if abs(z - obstacle["z"]) < radius + obstacle["d"] / 2:
+                return True
+    for wall in walls:
+        if abs(x - wall["x"]) < radius + wall["w"] / 2:
+            if abs(z - wall["z"]) < radius + wall["d"] / 2:
+                return True
+    return False
 
 
 class CombatSystem:

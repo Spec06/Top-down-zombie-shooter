@@ -1,4 +1,3 @@
-"""Movement component (3D velocity-based) with knockback support."""
 
 import numpy as np
 

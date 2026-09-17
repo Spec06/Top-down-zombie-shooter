@@ -1,9 +1,5 @@
 Updated todo list
 
-Super — hier kommt die präzise, umsetzbare Checkliste (B), Datei für Datei, mit genauen Signaturen, Beispielaufrufen und kurzen Testfällen. Folge die Reihenfolge strikt; nach jeder Datei: bauen, starten, prüfen. Ich gebe pro Datei genau an, welche Funktionen/Klassen du schreiben sollst und wie du sie kurz testest.
-
-Hinweis zum Stil: Verwende Typ-Hints (optional) — sie machen Tests/Refactor später leichter. Nutze in allen Dateien oben einen kurzen 1–2‑Zeiler Kommentar mit Zweck.
-
 Allgemeine Befehle
 - venv anlegen + aktivieren (PowerShell):
   . python -m venv .venv
@@ -299,24 +295,3 @@ Tägliche Dev-Loop (empfohlen)
 - Starte main.py → verifiziere minimalen Test
 - Wenn Fehler: stoppe, debugge lokal (prints, set DEBUG_DRAW_HITBOX True)
 - Wenn alles OK → nächste Datei
-
-Konkrete Fehlerquellen / Tips
-- Pygame + PyOpenGL: bei OpenGL-Fehlern zuerst mit 2D blits testen (pygame.Surface.blit) bevor Shader/GL-Code
-- Vektor-Richtungen: Konvention (Z-Forward oder -Z-Forward) konsistent halten
-- Kollisionsradius: kleine Toleranzen (epsilon) verwenden
-- Delta time: clock.tick(FPS)/1000.0 → dt in Sekunden
-- Beim Multithreading / Asynchronität: keine, alles im Hauptthread
-
-Beispiel-Workflow für die nächsten 2 Stunden (konkret)
-1. Erstelle settings.py (5–10min)
-2. Implementiere barebones main.py (20min): window open, background color, ESC quits
-3. Implementiere render_system.init_opengl + draw_ground + draw_cube (30min): minimaler GL-Code
-4. Implementiere entities/player.py (40min): update / rotate
-5. In main.py: instantiate player + draw_player (10min) → teste (run)
-
-Wenn du willst, kann ich dir jetzt für die erste Datei (settings.py) den exakten Minimal-Code erzeugen oder für die nächsten N Dateien in einem Block die konkreten Code-Snippets liefern (du copy-pastest sie). Sag mir, ob du:
-- Schritt-für-Schritt: "Erzeuge jetzt settings.py" (ich liefere den Code)
-oder
-- Bulk: "Liefere Skelette für die nächsten 3 Dateien (main.py, render_system.py, entities/player.py)" (ich liefere sie zusammen).
-
-Welche Variante möchtest du als Nächstes?

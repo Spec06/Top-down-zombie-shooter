@@ -1,4 +1,3 @@
-"""Reusable health component for entities."""
 
 
 class Health:
