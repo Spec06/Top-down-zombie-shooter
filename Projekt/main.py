@@ -1,3 +1,4 @@
+# Mit dem Main kann man das Spiel starten.
 # py -m pip install pygame-ce PyOpenGL numpy pytest
 # Run: main_game.py
 
