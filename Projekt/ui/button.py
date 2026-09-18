@@ -1,12 +1,3 @@
-"""Pygame Button widget with hover and click callback support.
-
-Usage:
-    btn = Button(50, 50, 120, 40, "Start", callback=on_start)
-    # in event loop:
-    for e in pygame.event.get():
-        btn.handle_event(e)
-    btn.draw(screen, font)
-"""
 import pygame
 
 

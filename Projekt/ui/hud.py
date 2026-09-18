@@ -1,5 +1,3 @@
-"""HUD overlay showing important player stats."""
-
 from __future__ import annotations
 
 import numpy as np
