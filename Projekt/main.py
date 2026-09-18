@@ -1,3 +1,5 @@
+# py -m pip install pygame-ce PyOpenGL numpy pytest
+# Run: main_game.py
 
 from __future__ import annotations
 
